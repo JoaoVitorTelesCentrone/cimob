@@ -4,6 +4,7 @@ export const MENU = [
   { href: "/app/leads", label: "Leads" },
   { href: "/app/imoveis", label: "Imóveis" },
   { href: "/app/equipe", label: "Equipe" },
+  { href: "/app/relatorios", label: "Relatórios" },
   { href: "/app/config", label: "Configurações" },
 ] as const;
 

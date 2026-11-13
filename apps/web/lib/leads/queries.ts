@@ -146,6 +146,32 @@ export async function loadAdSpend(organizationId: string, now = new Date()): Pro
   }
 }
 
+/** Gasto da Meta por dia entre duas datas ("AAAA-MM-DD", fim exclusivo), para o relatório mensal. */
+export async function loadSpendBetween(
+  organizationId: string,
+  from: string,
+  to: string,
+): Promise<{ date: string; spend: number }[]> {
+  const days: { date: string; spend: number }[] = [];
+  for (let offset = 0; ; offset += SPEND_PAGE) {
+    const page = await query(
+      (sb) =>
+        sb
+          .from("ad_spend_daily")
+          .select("date, spend")
+          .eq("organization_id", organizationId)
+          .gte("date", from)
+          .lt("date", to)
+          .order("date")
+          .order("ad_id")
+          .range(offset, offset + SPEND_PAGE - 1),
+      z.array(SpendRecord),
+    );
+    days.push(...page);
+    if (page.length < SPEND_PAGE) return days;
+  }
+}
+
 const DetailRecord = LeadRecord.extend({
   source: z.string().nullable(),
   intent: z.string().nullable(),

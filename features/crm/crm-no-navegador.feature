@@ -94,3 +94,13 @@ Funcionalidade: CRM no navegador
     Quando "Paula" publica a importação pela tela
     Então "Paula" vê a mensagem "Importação publicada"
     E "Paula" vê a unidade "E2E-102" em "/app/imoveis"
+
+  Cenário: Gestora vê o relatório do mês com os leads que chegaram
+    Dado o lead "Gabriela Rocha" de "Marina" no estágio "visit_done"
+    Quando "Paula" abre o relatório do mês atual
+    Então o funil do relatório mostra 1 lead e 1 visita
+    E o relatório por corretor mostra "Marina"
+
+  Cenário: Corretora não vê o relatório mensal
+    Quando "Marina" abre "/app/relatorios"
+    Então "Marina" vê a mensagem "Só o gestor da imobiliária vê o relatório mensal."

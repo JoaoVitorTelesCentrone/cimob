@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@c1imob/core": "workspace:*",
+    "@c1imob/reports": "workspace:*",
     "@c1imob/three": "workspace:*",
     "@c1imob/ui": "workspace:*",
     "@dnd-kit/core": "^6.3.1",

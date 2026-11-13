@@ -380,3 +380,26 @@ Then(
     await expect(page.getByRole("row", { name: new RegExp(code) }).filter({ visible: true })).toHaveCount(1);
   },
 );
+
+// T4.6: relatório mensal.
+When("{string} abre o relatório do mês atual", async ({ people }, name: string) => {
+  const br = new Date(Date.now() - 3 * 3_600_000);
+  const month = `${String(br.getUTCFullYear())}-${String(br.getUTCMonth() + 1).padStart(2, "0")}`;
+  await (await people.page(name)).goto(`/app/relatorios?mes=${month}`);
+});
+
+Then(
+  "o funil do relatório mostra {int} lead e {int} visita",
+  async ({ people, org }, leads: number, visits: number) => {
+    const [admin] = [...org.people.keys()];
+    const funnel = (await people.page(admin ?? "")).getByRole("region", { name: "Funil do mês" });
+    await expect(funnel.getByRole("row", { name: /^Leads/ }).getByRole("cell").nth(1)).toHaveText(String(leads));
+    await expect(funnel.getByRole("row", { name: /^Visitas/ }).getByRole("cell").nth(1)).toHaveText(String(visits));
+  },
+);
+
+Then("o relatório por corretor mostra {string}", async ({ people, org }, agent: string) => {
+  const [admin] = [...org.people.keys()];
+  const section = (await people.page(admin ?? "")).getByRole("region", { name: "Por corretor" });
+  await expect(section.getByRole("row", { name: new RegExp(agent) })).toHaveCount(1);
+});

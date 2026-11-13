@@ -19,8 +19,8 @@ async function Shell({ children }: { children: React.ReactNode }) {
   if (decision.kind !== "enter") redirect("/app/escolher");
 
   return (
-    <div className="grid min-h-screen grid-cols-[220px_minmax(0,1fr)]">
-      <aside className="flex flex-col gap-4 border-r border-line bg-surface-raised p-4">
+    <div className="grid min-h-screen grid-cols-[220px_minmax(0,1fr)] print:block">
+      <aside className="flex flex-col gap-4 border-r border-line bg-surface-raised p-4 print:hidden">
         <div>
           <p className="text-xs font-semibold text-ink-muted">Imobiliária</p>
           <p className="font-display text-lg font-extrabold">{decision.organization.name}</p>

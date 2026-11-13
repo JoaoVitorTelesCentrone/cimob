@@ -2,13 +2,14 @@ import { describe, expect, it } from "vitest";
 import { MENU, SECTIONS } from "./menu";
 
 describe("menu do CRM", () => {
-  it("tem as seis telas do doc 06 e o Painel primeiro", () => {
+  it("tem as telas do doc 06 e o Painel primeiro", () => {
     expect(MENU.map((m) => m.href)).toEqual([
       "/app",
       "/app/funil",
       "/app/leads",
       "/app/imoveis",
       "/app/equipe",
+      "/app/relatorios",
       "/app/config",
     ]);
   });
