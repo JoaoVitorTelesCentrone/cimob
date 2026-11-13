@@ -1,0 +1,4 @@
+{
+  "extends": "@c1imob/config/tsconfig.node.json",
+  "include": ["src", "tests", "*.ts"]
+}

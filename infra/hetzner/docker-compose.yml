@@ -1,0 +1,81 @@
+# Bot de WhatsApp no Hetzner (doc 01): Caddy (HTTPS) → bot → Redis. Só o Caddy é exposto.
+# Uso (na pasta infra/hetzner do servidor):  docker compose up -d --build
+name: c1imob-bot
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      BOT_DOMAIN: ${BOT_DOMAIN:?defina BOT_DOMAIN no .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      bot:
+        condition: service_healthy
+
+  bot:
+    build:
+      context: ../..
+      dockerfile: apps/bot/Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      REDIS_URL: redis://redis:6379
+      PORT: "8787"
+      TRANSCRIBE_URL: http://transcribe:8000
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8787/health"]
+      interval: 15s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  transcribe:
+    # WhisperX no CPU (T2.8). Só na rede interna; o modelo já vem dentro da imagem.
+    build:
+      context: ../../services/transcribe
+    restart: unless-stopped
+    environment:
+      WHISPER_MODEL: small
+      # Número de vCPUs do servidor (até 4; mais que isso ficou mais lento no teste).
+      WHISPER_THREADS: "2"
+      MAX_SECONDS: "60"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')",
+        ]
+      interval: 30s
+      timeout: 3s
+      start_period: 120s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # Filas em disco: um reinício não perde mensagem. noeviction: o BullMQ exige que nada seja descartado.
+    command: ["redis-server", "--appendonly yes", "--maxmemory-policy noeviction"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  caddy-data:
+  caddy-config:
+  redis-data:

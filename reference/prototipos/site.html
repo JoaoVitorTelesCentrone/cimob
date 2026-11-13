@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Espelho 3D white label — demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--brand:#155F4B;--ink:#0B1F17;--muted:#4D5A52;--line:#E0DDD0;--bg:#F6F4E9;--card:#fff;--ok:#16a34a;--warn:#d97706;--sold:#8b93a1}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+button,input{font:inherit}
+.demo-bar{background:#14181f;color:#e8eaee;font-size:12.5px;text-align:center;padding:7px 12px}
+.demo-bar b{color:#fff}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 24px;background:#fff;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px}
+.mark{width:40px;height:40px;border-radius:10px;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:800;letter-spacing:.5px}
+.brand .name{font-weight:800;font-size:17px;line-height:1.1}
+.brand .creci{font-size:12px;color:var(--muted)}
+.top .right{display:flex;align-items:center;gap:14px}
+.top .agent{font-size:13px;color:var(--muted);text-align:right}
+.top .agent b{display:block;color:var(--ink);font-size:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:999px;padding:11px 18px;font-weight:700;font-size:14px;cursor:pointer;text-decoration:none;transition:filter .15s,transform .15s}
+.btn:hover{filter:brightness(1.08)}
+.btn:active{transform:scale(.98)}
+.btn-brand{background:var(--brand);color:#fff}
+.btn-ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.hero{padding:28px 24px 18px;display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
+.hero h1{margin:0;font-size:clamp(28px,4vw,42px);letter-spacing:-.02em;line-height:1.05}
+.hero p{margin:8px 0 0;color:var(--muted);font-size:15px}
+.kpis{display:flex;gap:10px;flex-wrap:wrap}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 14px;min-width:120px}
+.kpi b{display:block;font-size:20px}
+.kpi span{font-size:12px;color:var(--muted)}
+.app{display:grid;grid-template-columns:1fr 390px;gap:16px;padding:0 24px;height:min(80vh,780px)}
+.viewer{position:relative;border-radius:18px;overflow:hidden;background:#0b1324;min-height:420px}
+.viewer canvas{display:block;width:100%;height:100%;touch-action:none}
+.glass{background:rgba(14,18,26,.58);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.12);color:#fff}
+.toolbar{position:absolute;top:12px;left:12px;right:12px;display:flex;flex-wrap:wrap;gap:8px;pointer-events:none}
+.seg{display:flex;gap:2px;padding:4px;border-radius:999px;pointer-events:auto}
+.seg button{background:transparent;color:#e9edf3;border:0;border-radius:999px;padding:7px 12px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+.seg button.on{background:#fff;color:#14181f}
+.seg button .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#22c55e;margin-right:6px;vertical-align:1px}
+.timebar{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);width:min(540px,calc(100% - 24px));border-radius:999px;padding:8px 16px;display:flex;align-items:center;gap:12px}
+.timebar input{flex:1;accent-color:#fff}
+.timebar .t{font-variant-numeric:tabular-nums;font-weight:800;font-size:13px;min-width:44px;text-align:right}
+.timebar .ic{font-size:13px;opacity:.85}
+.legend{position:absolute;left:12px;bottom:70px;border-radius:12px;padding:8px 12px;font-size:12px;display:flex;gap:12px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.tip{position:absolute;pointer-events:none;border-radius:10px;padding:7px 10px;font-size:12.5px;font-weight:600;transform:translate(-50%,-120%);white-space:nowrap;display:none}
+.hint{position:absolute;right:12px;bottom:70px;font-size:12px;border-radius:10px;padding:6px 10px}
+.loading{position:absolute;inset:0;display:grid;place-items:center;color:#cfd6e2;font-size:14px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.card{padding:18px;border-bottom:1px solid var(--line)}
+.card .empty{color:var(--muted);font-size:14px;line-height:1.5}
+.card .empty b{color:var(--ink);display:block;font-size:16px;margin-bottom:4px}
+.card h3{margin:0;font-size:22px;display:flex;align-items:center;gap:10px;justify-content:space-between}
+.pill{font-size:11.5px;font-weight:800;padding:4px 9px;border-radius:999px;white-space:nowrap}
+.pill.disp{background:#dcfce7;color:#15803d}
+.pill.res{background:#fef3c7;color:#b45309}
+.pill.vend{background:#eceef2;color:#5b6472}
+.meta{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
+.meta div{background:var(--bg);border-radius:10px;padding:8px 10px}
+.meta span{display:block;font-size:11px;color:var(--muted)}
+.meta b{font-size:13.5px}
+.price{font-size:24px;font-weight:800;letter-spacing:-.01em}
+.price small{display:block;font-size:11.5px;color:var(--muted);font-weight:500}
+.plan{margin:12px 0;border:1px solid var(--line);border-radius:12px;padding:8px;background:#fbfbfc}
+.plan svg{display:block;width:100%;height:auto}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.actions .btn{padding:11px 10px;font-size:13.5px}
+.note{font-size:11.5px;color:var(--muted);margin-top:8px}
+.filters{display:flex;gap:6px;flex-wrap:wrap;padding:12px 18px 8px}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 11px;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--ink)}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.count{padding:0 18px 8px;font-size:12.5px;color:var(--muted)}
+.list{overflow:auto;flex:1;min-height:0}
+.row{display:grid;grid-template-columns:56px 1fr auto;gap:10px;align-items:center;padding:10px 18px;border-top:1px solid #f0f1f4;cursor:pointer}
+.row:hover{background:#fafbfc}
+.row.sel{background:color-mix(in srgb,var(--brand) 9%,#fff)}
+.row .n{font-weight:800;font-size:15px}
+.row .d{font-size:12.5px;color:var(--muted)}
+.row .d b{color:var(--ink);font-weight:700}
+.row .r{text-align:right}
+.row .p{font-weight:800;font-size:13.5px;margin-bottom:3px}
+section.info{padding:36px 24px 12px}
+section.info h2{margin:0 0 16px;font-size:24px;letter-spacing:-.01em}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px}
+.box h4{margin:0 0 6px;font-size:15px}
+.box p{margin:0;color:var(--muted);font-size:14px;line-height:1.5}
+.contact{margin:20px 24px 0;background:var(--brand);color:#fff;border-radius:18px;padding:26px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+.contact h3{margin:0 0 6px;font-size:22px}
+.contact p{margin:0;opacity:.85;font-size:14px}
+.contact .btn{background:#fff;color:var(--ink)}
+footer{padding:26px 24px 90px;font-size:12.5px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.fab{position:fixed;left:16px;bottom:16px;z-index:20;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(360px,92vw);background:#fff;z-index:30;box-shadow:-12px 0 40px rgba(0,0,0,.18);transform:translateX(105%);transition:transform .25s;display:flex;flex-direction:column}
+.drawer.open{transform:none}
+.drawer .hd{padding:18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.drawer .hd b{font-size:16px}
+.drawer .bd{padding:18px;display:flex;flex-direction:column;gap:14px;overflow:auto}
+.drawer label{font-size:12.5px;font-weight:700;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+.drawer input[type=text]{border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;color:var(--ink)}
+.drawer input[type=color]{width:100%;height:42px;border:1px solid var(--line);border-radius:10px;padding:3px;background:#fff}
+.swatches{display:flex;gap:8px}
+.swatches button{width:30px;height:30px;border-radius:8px;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer}
+.drawer .ft{padding:14px 18px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+.x{background:none;border:0;font-size:22px;cursor:pointer;color:var(--muted)}
+@media (max-width:960px){
+  .app{grid-template-columns:1fr;height:auto;padding:0 12px}
+  .viewer{height:64vh}
+  .panel{max-height:none}
+  .list{max-height:420px}
+  .grid3{grid-template-columns:1fr}
+  .hero{padding:20px 14px 14px}
+  header.top{padding:12px 14px}
+  .top .agent{display:none}
+  section.info{padding:28px 14px 8px}
+  .contact{margin:16px 12px 0}
+  footer{padding:22px 14px 90px}
+  .legend,.hint{display:none}
+}
+/* Center One DS */
+.hero h1,.kpi b,.price,.card h3,section.info h2,.contact h3,.brand .name,.box h4{font-family:'Bricolage Grotesque',Inter,sans-serif;letter-spacing:-.01em}
+.hero h1{font-weight:800;text-transform:uppercase;letter-spacing:-.02em}
+.demo-bar{background:#0B1F17}
+.seg button.on{background:#C8FF5A;color:#0B1F17}
+.timebar input{accent-color:#C8FF5A}
+.contact{background:#0B1F17}
+.contact h3 span{color:#C8FF5A}
+.contact .btn{background:#C8FF5A;color:#0B1F17}
+.chip.on{background:#0B1F17;border-color:#0B1F17}
+.btn-brand::after,.contact .btn::after{content:'↗'}
+footer b{color:var(--ink)}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head>
+<body>
+
+<div class="demo-bar"><b>Demonstração white label.</b> Imobiliária, empreendimento, preços e disponibilidade são fictícios. <button id="openDrawer" style="margin-left:10px;background:#fff;color:#14181f;border:0;border-radius:999px;padding:4px 12px;font-weight:700;font-size:12px;cursor:pointer">🎨 Personalizar marca</button></div>
+
+<header class="top">
+  <div class="brand">
+    <div class="mark" id="mark">HI</div>
+    <div><div class="name" data-b="nome">Horizonte Imóveis</div><div class="creci" data-b="creci">CRECI 00000-J</div></div>
+  </div>
+  <div class="right">
+    <div class="agent">Corretora responsável<b data-b="corretor">Marina Alves</b></div>
+    <a class="btn btn-brand wa" target="_blank" rel="noopener" data-msg="geral">WhatsApp</a>
+  </div>
+</header>
+
+<div class="hero">
+  <div>
+    <h1 data-b="empreendimento">Residencial Aurora</h1>
+    <p><span data-b="bairro">Vila Mariana, São Paulo</span> · Entrega <span data-b="entrega">dez/2028</span> · Escolha sua unidade direto no prédio</p>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><b id="kDisp">–</b><span>unidades disponíveis</span></div>
+    <div class="kpi"><b id="kFrom">–</b><span>a partir de</span></div>
+  </div>
+</div>
+
+<div class="app">
+  <div class="viewer" id="viewer">
+    <div class="loading" id="loading">Carregando o prédio em 3D…</div>
+    <div class="toolbar">
+      <div class="seg glass" id="views">
+        <button data-v="aerea" class="on">Aérea</button><button data-v="frente">Frente</button><button data-v="lateral">Lateral</button><button data-v="fundos">Fundos</button><button data-v="cobertura">Cobertura</button>
+      </div>
+      <div class="seg glass" id="daynight"><button data-h="13" >Dia</button><button data-h="20.5">Noite</button></div>
+      <div class="seg glass"><button id="tHi" class="on"><span class="dot"></span>Destacar disponíveis</button><button id="tRot">Girar</button></div>
+    </div>
+    <div class="legend glass"><span><i style="background:#22c55e"></i>Disponível</span><span><i style="background:#f59e0b"></i>Reservado</span><span><i style="background:#8b93a1"></i>Vendido</span></div>
+    <div class="hint glass">Arraste para girar · role para zoom · clique na unidade</div>
+    <div class="timebar glass"><span class="ic">☀</span><input type="range" id="hour" min="5.5" max="22" step="0.25" value="16.5" aria-label="Horário do dia"><span class="t" id="hourL">16:30</span></div>
+    <div class="tip glass" id="tip"></div>
+  </div>
+
+  <aside class="panel">
+    <div class="card" id="card"><div class="empty"><b>Escolha uma unidade</b>Clique em um apartamento no prédio ou na lista abaixo para ver planta, preço e disponibilidade.</div></div>
+    <div class="filters" id="filters">
+      <button class="chip on" data-f="todas">Todas</button><button class="chip" data-f="disp">Disponíveis</button><button class="chip" data-f="A">3 dorms</button><button class="chip" data-f="B">2 dorms</button><button class="chip" data-f="C">Cobertura</button>
+    </div>
+    <div class="count" id="count"></div>
+    <div class="list" id="list"></div>
+  </aside>
+</div>
+
+<section class="info">
+  <h2>O empreendimento</h2>
+  <div class="grid3">
+    <div class="box"><h4>Localização</h4><p><span data-b="bairro">Vila Mariana, São Paulo</span>. Perto de metrô, parques e comércio do bairro.</p></div>
+    <div class="box"><h4>Lazer</h4><p>Piscina, rooftop com churrasqueira, academia e espaço coworking.</p></div>
+    <div class="box"><h4>Plantas</h4><p>2 e 3 dormitórios de 64 a 82 m², e coberturas de 168 m² com 4 suítes.</p></div>
+  </div>
+</section>
+
+<div class="contact">
+  <div><h3>Fale com <span data-b="corretor">Marina Alves</span></h3><p>Tire dúvidas, simule o financiamento e agende sua visita ao decorado.</p></div>
+  <a class="btn wa" target="_blank" rel="noopener" data-msg="visita">Agendar visita pelo WhatsApp</a>
+</div>
+
+<footer>
+  <span>© <span data-b="nome">Horizonte Imóveis</span> · <span data-b="creci">CRECI 00000-J</span></span>
+  <span>Site por <b>Center One</b> · demonstração com dados fictícios</span>
+</footer>
+
+
+
+<div class="drawer" id="drawer" aria-hidden="true">
+  <div class="hd"><b>Personalizar (white label)</b><button class="x" id="closeDrawer" aria-label="Fechar">×</button></div>
+  <div class="bd">
+    <label>Nome da imobiliária<input type="text" data-k="nome"></label>
+    <label>Corretor(a)<input type="text" data-k="corretor"></label>
+    <label>CRECI<input type="text" data-k="creci"></label>
+    <label>WhatsApp (com DDI e DDD)<input type="text" data-k="whatsapp"></label>
+    <label>Empreendimento<input type="text" data-k="empreendimento"></label>
+    <label>Bairro / cidade<input type="text" data-k="bairro"></label>
+    <label>Cor da marca<input type="color" data-k="cor"></label>
+    <div class="swatches" id="swatches"></div>
+    <button class="btn btn-ghost" id="resetBrand">Restaurar padrão</button>
+  </div>
+  <div class="ft">As mudanças valem só nesta tela. No produto, cada cliente recebe o site já configurado com a marca dele.</div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+/* ---------- Configuração white label ---------- */
+const DEFAULT = {
+  nome:'Horizonte Imóveis', corretor:'Marina Alves', creci:'CRECI 00000-J',
+  whatsapp:'5511900000000', cor:'#155F4B',
+  empreendimento:'Residencial Aurora', bairro:'Vila Mariana, São Paulo', entrega:'dez/2028', codigo:'AUR'
+};
+const BRAND = {...DEFAULT};
+
+const fmt = n => n.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+const STATUS = {disp:'Disponível',res:'Reservado',vend:'Vendido'};
+
+/* ---------- Unidades (dados fictícios) ---------- */
+const rnd = n => { const x = Math.sin(n*12.9898)*43758.5453; return x-Math.floor(x); };
+const UNITS = [];
+for (let f=1; f<=9; f++) for (let p=1; p<=4; p++) {
+  const num = f*100+p, front = p<=2, r = rnd(num);
+  UNITS.push({ num, andar:f, front, tipo: front?'A':'B',
+    x: p%2 ? -6 : 6, z: front ? 4 : -4,
+    area: front?82:64, dorms: front?'3 dorms (1 suíte)':'2 dorms (1 suíte)', vagas: front?2:1,
+    preco: front ? 720000+f*9000 : 540000+f*7000,
+    status: r<.5?'disp':r<.68?'res':'vend', light: rnd(num+7)<.62 });
+}
+UNITS.push({num:1001,andar:10,front:true,tipo:'C',x:-6,z:0,area:168,dorms:'4 suítes',vagas:3,preco:1690000,status:'disp',light:true,cob:true});
+UNITS.push({num:1002,andar:10,front:true,tipo:'C',x:6,z:0,area:168,dorms:'4 suítes',vagas:3,preco:1720000,status:'res',light:false,cob:true});
+
+function updateKpis(){ const disp = UNITS.filter(u=>u.status==='disp');
+document.getElementById('kDisp').textContent = disp.length;
+document.getElementById('kFrom').textContent = fmt(Math.min(...disp.map(u=>u.preco))); }
+updateKpis();
+
+/* ---------- Cena ---------- */
+const viewer = document.getElementById('viewer');
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+viewer.prepend(renderer.domElement);
+document.getElementById('loading').remove();
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0x9cc9ea, 160, 460);
+const camera = new THREE.PerspectiveCamera(38, 1, 0.5, 1200);
+camera.position.set(58,40,64);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0,16,0);
+controls.enableDamping = true;
+controls.maxPolarAngle = Math.PI/2.04;
+controls.minDistance = 22; controls.maxDistance = 190;
+controls.autoRotateSpeed = 0.8;
+
+const hemi = new THREE.HemisphereLight(0xdfefff, 0x51603f, .6); scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xffffff, 2.4);
+sun.castShadow = true; sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera,{left:-70,right:70,top:70,bottom:-70,near:1,far:400});
+sun.shadow.bias = -0.0004;
+scene.add(sun, sun.target); sun.target.position.set(0,10,0);
+
+const M = (o) => new THREE.MeshStandardMaterial(o);
+const concrete = M({color:0xf2efe8,roughness:.85});
+const dark = M({color:0x2b3039,roughness:.6});
+const wood = M({color:0x8d5b3d,roughness:.7});
+const rail = M({color:0xbfd8e6,transparent:true,opacity:.35,roughness:.1});
+const lobby = M({color:0x2c3a46,roughness:.15,metalness:.4,emissive:0xffc27a,emissiveIntensity:0});
+const pool = M({color:0x38b6e8,roughness:.1,emissive:0x0e5c80,emissiveIntensity:.15});
+const lampMat = M({color:0xfff1d0,emissive:0xffd58a,emissiveIntensity:0});
+
+function box(w,h,d,mat,x,y,z,cast=true){
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+  m.position.set(x,y,z); m.castShadow=cast; m.receiveShadow=true; scene.add(m); return m;
+}
+
+// terreno, rua, lote
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(900,900), M({color:0x6f8a55,roughness:1}));
+ground.rotation.x = -Math.PI/2; ground.receiveShadow = true; scene.add(ground);
+box(900,.06,11,M({color:0x3b3f46,roughness:.9}),0,.03,30,false);
+box(52,.12,44,M({color:0xd9d3c4,roughness:.95}),0,.06,2,false);
+box(10,.3,5,pool,18,.2,10);
+box(6,.12,6,M({color:0x9bbf7a}),-18,.15,12,false);
+
+// térreo + pavimentos
+box(24,3,16,lobby,0,1.5,0);
+for (let f=1; f<=10; f++){
+  const base = f*3;
+  box(25,.32,18.6,concrete,0,base,1);
+  box(24.6,1,.06,rail,0,base+.66,10.25,false);
+  box(24.6,1,.06,rail,0,base+.66,-8.25,false);
+}
+box(25.4,.45,17.4,concrete,0,33.25,.5);
+box(.5,30,16.8,concrete,-12.35,18,.2);
+box(.5,30,16.8,concrete,12.35,18,.2);
+for (let i=0;i<9;i++){ box(.08,30,1.2,dark,-12.62,18,-6+i*1.6,false); box(.08,30,1.2,dark,12.62,18,-6+i*1.6,false); }
+box(.45,30,.45,wood,0,18,8.3);
+box(.45,30,.45,wood,-12,18,10.1); box(.45,30,.45,wood,12,18,10.1);
+box(7,4,6,dark,0,35.4,-3);
+for (let i=0;i<7;i++) box(.25,.25,8,wood,-10+i*1.6,36.2,4);
+box(.25,3,.25,wood,-10,34.8,0.3); box(.25,3,.25,wood,-0.4,34.8,0.3); box(.25,3,.25,wood,-10,34.8,7.7); box(.25,3,.25,wood,-0.4,34.8,7.7);
+
+// unidades
+const glassDay = new THREE.Color(0x8fb2c6), glassNight = new THREE.Color(0x1b2531);
+const C_OK = new THREE.Color(0x22c55e), C_RES = new THREE.Color(0xf59e0b), C_SOLD = new THREE.Color(0x6b7280);
+const unitMeshes = [];
+for (const u of UNITS){
+  const geo = u.cob ? new THREE.BoxGeometry(11.6,2.65,15) : new THREE.BoxGeometry(11.6,2.55,7.6);
+  const mat = M({color:glassDay.clone(),metalness:.05,roughness:.35,transparent:true,opacity:.92,emissive:0xffc27a,emissiveIntensity:0});
+  const m = new THREE.Mesh(geo,mat);
+  m.position.set(u.x, u.andar*3+1.45, u.z);
+  m.castShadow = true; m.receiveShadow = true;
+  const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({color:0x22c55e}));
+  edges.scale.setScalar(1.015); edges.visible = false; m.add(edges);
+  m.userData = {u, edges}; u.mesh = m;
+  scene.add(m); unitMeshes.push(m);
+}
+
+// vizinhança
+const hood = [0xd8d4cc,0xc9c6bf,0xe3ded3,0xbfc3c8,0xd1c7b8];
+for (let i=0;i<120;i++){
+  const a = rnd(i+300)*Math.PI*2, r = 48 + rnd(i+400)*170;
+  const x = Math.cos(a)*r, z = Math.sin(a)*r;
+  if (Math.abs(z-30) < 9) continue;
+  const h = 3 + rnd(i+500)*(rnd(i+600)<.15 ? 26 : 9);
+  const w = 6 + rnd(i+700)*10, d = 6 + rnd(i+800)*10;
+  const b = box(w,h,d,M({color:hood[i%hood.length],roughness:.95}),x,h/2,z);
+  b.userData.hood = true;
+}
+const trunkMat = M({color:0x5a4030}), leafMat = M({color:0x3e6b36,roughness:1});
+[[-20,-14],[-22,-2],[-21,9],[20,-14],[22,-3],[-6,19],[6,19],[-14,19],[14,19],[23,16],[-24,18]].forEach(([x,z],i)=>{
+  box(.5,2.4,.5,trunkMat,x,1.2,z);
+  const s = new THREE.Mesh(new THREE.SphereGeometry(2+rnd(i)*1.2,12,10),leafMat);
+  s.position.set(x,3.6+rnd(i+2),z); s.castShadow = true; scene.add(s);
+});
+const lamps = [];
+for (let i=-3;i<=3;i++){
+  box(.18,5,.18,dark,i*14,2.5,24.6,false);
+  const l = new THREE.Mesh(new THREE.SphereGeometry(.45,10,8),lampMat); l.position.set(i*14,5.1,24.6); scene.add(l); lamps.push(l);
+}
+
+/* ---------- Estado ---------- */
+let hour = 16.5, nightF = 0, highlight = true, selected = null, hovered = null, filter = 'todas';
+
+function applyColors(){
+  const brandC = new THREE.Color(BRAND.cor);
+  for (const m of unitMeshes){
+    const {u, edges} = m.userData, mat = m.material;
+    const c = glassDay.clone().lerp(glassNight, nightF*.85);
+    let op = .9;
+    if (highlight){
+      if (u.status==='disp') c.lerp(C_OK,.55);
+      else if (u.status==='res') c.lerp(C_RES,.45);
+      else { c.lerp(C_SOLD,.55); op = .7; }
+    }
+    if (u===selected) c.set(0xffffff);
+    mat.color.copy(c); mat.opacity = op;
+    const hiDisp = highlight && u.status==='disp';
+    if (u===selected){ mat.emissive.set(0xfff4d6); mat.emissiveIntensity = .9; mat.opacity = 1; }
+    else if (hiDisp){ mat.emissive.set(0x22c55e); mat.emissiveIntensity = .18 + nightF*.12; }
+    else { mat.emissive.set(0xffc27a); mat.emissiveIntensity = nightF * (u.light ? .9 : .04); }
+    edges.visible = u===selected || u===hovered || (highlight && u.status==='disp');
+    edges.material.color.set(u===selected ? BRAND.cor : u===hovered ? 0xffffff : 0x4ade80);
+  }
+}
+
+function setHour(h){
+  hour = h;
+  const t = (h-6)/12, s = (t>0 && t<1) ? Math.sin(Math.PI*t) : 0;
+  nightF = h>18 ? Math.min(1,(h-18)/.9) : h<6.7 ? Math.min(1,(6.7-h)/.9) : 0;
+  const k = Math.min(1, s*2.2);
+  const sky = new THREE.Color(0xf2a35f).lerp(new THREE.Color(0x9cc9ea), k).lerp(new THREE.Color(0x0b1324), nightF);
+  scene.background = sky; scene.fog.color.copy(sky);
+  const elev = Math.max(.06, s*1.2);
+  const tt = Math.min(1,Math.max(0,t));
+  sun.position.set(150*Math.cos(Math.PI*tt), 150*Math.sin(elev)+6, 70);
+  sun.intensity = 2.6*s*(1-nightF);
+  sun.color.set(0xffb070).lerp(new THREE.Color(0xffffff), k);
+  hemi.intensity = .18 + .55*s*(1-nightF);
+  hemi.color.set(0xdfefff).lerp(new THREE.Color(0x6a7fb0), nightF);
+  lobby.emissiveIntensity = nightF*.9;
+  lampMat.emissiveIntensity = nightF*2.2;
+  pool.emissiveIntensity = .15 + nightF*.9;
+  const hh = Math.floor(h), mm = Math.round((h-hh)*60);
+  document.getElementById('hourL').textContent = `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+  document.getElementById('hour').value = h;
+  document.querySelectorAll('#daynight button').forEach(b => b.classList.toggle('on', (nightF>.5) === (b.dataset.h==='20.5')));
+  applyColors();
+}
+
+/* ---------- Câmera ---------- */
+const VIEWS = {
+  aerea:[[58,40,64],[0,16,0]], frente:[[0,17,78],[0,16,0]], lateral:[[80,17,6],[0,16,0]],
+  fundos:[[0,17,-78],[0,16,0]], cobertura:[[30,58,40],[0,31,0]]
+};
+let tween = null;
+const ease = x => x<.5 ? 4*x*x*x : 1-Math.pow(-2*x+2,3)/2;
+function flyTo(pos,target,dur=950){
+  tween = {p0:camera.position.clone(), t0:controls.target.clone(), p1:new THREE.Vector3(...pos), t1:new THREE.Vector3(...target), s:performance.now(), dur};
+}
+document.getElementById('views').addEventListener('click', e => {
+  const v = e.target.closest('button')?.dataset.v; if (!v) return;
+  document.querySelectorAll('#views button').forEach(b=>b.classList.toggle('on', b.dataset.v===v));
+  flyTo(...VIEWS[v]);
+});
+document.getElementById('daynight').addEventListener('click', e => {
+  const h = e.target.closest('button')?.dataset.h; if (h) setHour(parseFloat(h));
+});
+document.getElementById('hour').addEventListener('input', e => setHour(parseFloat(e.target.value)));
+const tHi = document.getElementById('tHi'), tRot = document.getElementById('tRot');
+tHi.onclick = () => { highlight = !highlight; tHi.classList.toggle('on',highlight); applyColors(); };
+tRot.onclick = () => { controls.autoRotate = !controls.autoRotate; tRot.classList.toggle('on',controls.autoRotate); };
+
+/* ---------- Seleção ---------- */
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), tip = document.getElementById('tip');
+function pick(ev){
+  const r = renderer.domElement.getBoundingClientRect();
+  ndc.set(((ev.clientX-r.left)/r.width)*2-1, -((ev.clientY-r.top)/r.height)*2+1);
+  ray.setFromCamera(ndc,camera);
+  const hit = ray.intersectObjects(unitMeshes,false)[0];
+  return hit ? hit.object.userData.u : null;
+}
+let down = null;
+renderer.domElement.addEventListener('pointerdown', e => { down = {x:e.clientX,y:e.clientY}; });
+renderer.domElement.addEventListener('pointerup', e => {
+  if (!down || Math.hypot(e.clientX-down.x, e.clientY-down.y) > 6) return;
+  const u = pick(e); if (u) select(u, true);
+});
+renderer.domElement.addEventListener('pointermove', e => {
+  if (e.pointerType !== 'mouse') return;
+  const u = pick(e);
+  if (u !== hovered){ hovered = u; applyColors(); renderer.domElement.style.cursor = u ? 'pointer' : 'grab'; }
+  if (u){
+    const r = viewer.getBoundingClientRect();
+    tip.style.display = 'block'; tip.style.left = (e.clientX-r.left)+'px'; tip.style.top = (e.clientY-r.top)+'px';
+    tip.textContent = `Unid. ${u.num} · ${STATUS[u.status]} · ${fmt(u.preco)}`;
+  } else tip.style.display = 'none';
+});
+renderer.domElement.addEventListener('pointerleave', () => { hovered = null; tip.style.display='none'; applyColors(); });
+
+function select(u, fromScene){
+  selected = u; applyColors(); renderCard(); renderList();
+  const p = u.mesh.position, dir = u.z < 0 ? -1 : 1;
+  flyTo([p.x*1.3+10, p.y+9, p.z + dir*60], [p.x*.3, p.y, p.z]);
+  if (!fromScene) viewer.scrollIntoView({behavior:'smooth', block:'nearest'});
+  document.querySelectorAll('#views button').forEach(b=>b.classList.remove('on'));
+}
+
+/* ---------- Painel ---------- */
+const waLink = (msg) => `https://wa.me/${BRAND.whatsapp.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`;
+const msgFor = (u, kind) => kind==='visita'
+  ? `Olá, ${BRAND.corretor}! Quero agendar uma visita à unidade ${u.num} do ${BRAND.empreendimento}. Código: ${BRAND.codigo}-${u.num}`
+  : `Olá, ${BRAND.corretor}! Vi a unidade ${u.num} do ${BRAND.empreendimento} no site e quero saber mais. Código: ${BRAND.codigo}-${u.num}`;
+
+function planSVG(t){
+  const s = 'fill="none" stroke="#9aa3b2" stroke-width="1.2"', tx = 'font-size="8" fill="#5b6472" font-family="Inter"';
+  if (t==='A') return `<svg viewBox="0 0 220 120"><rect x="4" y="4" width="212" height="112" rx="3" ${s}/><rect x="4" y="4" width="96" height="70" ${s}/><text x="30" y="42" ${tx}>Sala / jantar</text><rect x="4" y="74" width="96" height="42" ${s}/><text x="38" y="98" ${tx}>Varanda</text><rect x="100" y="4" width="44" height="40" ${s}/><text x="108" y="27" ${tx}>Cozinha</text><rect x="144" y="4" width="72" height="56" ${s}/><text x="164" y="35" ${tx}>Suíte</text><rect x="144" y="60" width="72" height="56" ${s}/><text x="162" y="91" ${tx}>Dorm. 2</text><rect x="100" y="70" width="44" height="46" ${s}/><text x="106" y="96" ${tx}>Dorm. 3</text><rect x="100" y="44" width="44" height="26" ${s}/><text x="114" y="60" ${tx}>Banho</text></svg>`;
+  if (t==='B') return `<svg viewBox="0 0 220 120"><rect x="4" y="4" width="212" height="112" rx="3" ${s}/><rect x="4" y="4" width="110" height="78" ${s}/><text x="36" y="46" ${tx}>Sala / cozinha</text><rect x="4" y="82" width="110" height="34" ${s}/><text x="44" y="102" ${tx}>Varanda</text><rect x="114" y="4" width="102" height="58" ${s}/><text x="152" y="36" ${tx}>Suíte</text><rect x="114" y="62" width="62" height="54" ${s}/><text x="128" y="92" ${tx}>Dorm. 2</text><rect x="176" y="62" width="40" height="54" ${s}/><text x="182" y="92" ${tx}>Banho</text></svg>`;
+  return `<svg viewBox="0 0 220 120"><rect x="4" y="4" width="212" height="112" rx="3" ${s}/><rect x="4" y="4" width="120" height="64" ${s}/><text x="38" y="39" ${tx}>Living integrado</text><rect x="4" y="68" width="120" height="48" ${s}/><text x="30" y="95" ${tx}>Terraço com piscina</text><rect x="124" y="4" width="46" height="56" ${s}/><text x="132" y="35" ${tx}>Suíte 1</text><rect x="170" y="4" width="46" height="56" ${s}/><text x="178" y="35" ${tx}>Suíte 2</text><rect x="124" y="60" width="46" height="56" ${s}/><text x="132" y="91" ${tx}>Suíte 3</text><rect x="170" y="60" width="46" height="56" ${s}/><text x="176" y="91" ${tx}>Master</text></svg>`;
+}
+
+function renderCard(){
+  const el = document.getElementById('card'), u = selected;
+  if (!u) return;
+  const pos = u.cob ? 'Cobertura' : (u.front ? 'Frente' : 'Fundos');
+  const can = u.status !== 'vend';
+  el.innerHTML = `
+    <h3>Unidade ${u.num}<span class="pill ${u.status}">${STATUS[u.status]}</span></h3>
+    <div class="meta">
+      <div><span>Andar</span><b>${u.andar}º</b></div><div><span>Posição</span><b>${pos}</b></div><div><span>Área</span><b>${u.area} m²</b></div>
+      <div><span>Plantas</span><b>${u.dorms}</b></div><div><span>Vagas</span><b>${u.vagas}</b></div><div><span>Código</span><b>${BRAND.codigo}-${u.num}</b></div>
+    </div>
+    <div class="price">${u.status==='vend' ? 'Vendida' : fmt(u.preco)}<small>${u.status==='res' ? 'Reservada · entre na fila de interesse' : u.status==='vend' ? 'Veja unidades parecidas disponíveis' : 'Valor de tabela · condições com o corretor'}</small></div>
+    <div class="plan">${planSVG(u.tipo)}</div>
+    <div class="actions">
+      <a class="btn btn-brand" target="_blank" rel="noopener" data-kind="info" href="${waLink(msgFor(u,'info'))}">${can ? 'Quero essa' : 'Ver parecidas'}</a>
+      <a class="btn btn-ghost" target="_blank" rel="noopener" data-kind="visita" href="${waLink(msgFor(u,'visita'))}">Agendar visita</a>
+    </div>
+    <div class="note">Abre o WhatsApp de ${BRAND.corretor} com o código da unidade já preenchido.</div>`;
+}
+
+function renderList(){
+  const list = document.getElementById('list');
+  const items = UNITS.filter(u => filter==='todas' || (filter==='disp' ? u.status==='disp' : u.tipo===filter))
+                     .sort((a,b)=>b.num-a.num);
+  document.getElementById('count').textContent = `${items.length} unidades · ${items.filter(u=>u.status==='disp').length} disponíveis`;
+  list.innerHTML = items.map(u => `
+    <div class="row ${u===selected?'sel':''}" data-n="${u.num}">
+      <div class="n">${u.num}</div>
+      <div class="d"><b>${u.area} m²</b> · ${u.dorms}<br>${u.andar}º andar · ${u.cob?'cobertura':u.front?'frente':'fundos'}</div>
+      <div class="r"><div class="p">${u.status==='vend'?'—':fmt(u.preco)}</div><span class="pill ${u.status}">${STATUS[u.status]}</span></div>
+    </div>`).join('');
+}
+document.getElementById('list').addEventListener('click', e => {
+  const n = e.target.closest('.row')?.dataset.n; if (n) select(UNITS.find(u=>u.num==n), false);
+});
+document.getElementById('filters').addEventListener('click', e => {
+  const f = e.target.closest('.chip')?.dataset.f; if (!f) return;
+  filter = f; document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.f===f)); renderList();
+});
+
+/* ---------- Integração (demo embutida) ---------- */
+const EMB = window.parent !== window;
+let paused = false;
+const unitPayload = u => ({cod:`${BRAND.codigo}-${u.num}`, num:u.num, titulo:`${BRAND.empreendimento} · unid. ${u.num}`, bairro:BRAND.bairro.split(',')[0], area:u.area, quartos:parseInt(u.dorms)||4, dorms:u.dorms, preco:u.preco, status:u.status, empreendimento:BRAND.empreendimento});
+document.getElementById('card').addEventListener('click', e => {
+  const a = e.target.closest('a.btn'); if (!a || !EMB || !selected) return;
+  e.preventDefault();
+  parent.postMessage({type:'wa', kind:a.dataset.kind, unit:unitPayload(selected), msg:msgFor(selected, a.dataset.kind)}, '*');
+});
+document.querySelectorAll('a.wa').forEach(a => a.addEventListener('click', e => {
+  if (!EMB) return; e.preventDefault();
+  parent.postMessage({type:'wa', kind:'geral', unit:null, msg:`Olá! Vi o ${BRAND.empreendimento} no site e quero saber mais.`}, '*');
+}));
+window.addEventListener('message', e => {
+  const d = e.data || {};
+  if (d.type === 'pause'){ paused = !!d.on; }
+  if (d.type === 'unitStatus'){
+    const u = UNITS.find(x => `${BRAND.codigo}-${x.num}` === d.cod);
+    if (u){ u.status = d.status; applyColors(); renderList(); if (selected === u) renderCard(); updateKpis(); }
+  }
+});
+
+/* ---------- White label ---------- */
+function initials(n){ return n.split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase() || '?'; }
+function applyBrand(){
+  document.documentElement.style.setProperty('--brand', BRAND.cor);
+  document.querySelectorAll('[data-b]').forEach(el => el.textContent = BRAND[el.dataset.b]);
+  document.getElementById('mark').textContent = initials(BRAND.nome);
+  document.querySelectorAll('a.wa').forEach(a => {
+    a.href = waLink(a.dataset.msg==='visita'
+      ? `Olá, ${BRAND.corretor}! Quero agendar uma visita ao ${BRAND.empreendimento}.`
+      : `Olá, ${BRAND.corretor}! Vi o ${BRAND.empreendimento} no site e quero saber mais.`);
+  });
+  document.title = `${BRAND.empreendimento} — ${BRAND.nome}`;
+  if (selected) renderCard();
+  applyColors();
+}
+const drawer = document.getElementById('drawer');
+document.getElementById('openDrawer').onclick = () => {
+  drawer.querySelectorAll('[data-k]').forEach(i => i.value = BRAND[i.dataset.k]);
+  drawer.classList.add('open'); drawer.setAttribute('aria-hidden','false');
+};
+document.getElementById('closeDrawer').onclick = () => { drawer.classList.remove('open'); drawer.setAttribute('aria-hidden','true'); };
+drawer.addEventListener('input', e => { const k = e.target.dataset.k; if (k){ BRAND[k] = e.target.value; applyBrand(); } });
+const sw = document.getElementById('swatches');
+['#155F4B','#1d4ed8','#b91c1c','#7c3aed','#c2410c','#0f172a'].forEach(c => {
+  const b = document.createElement('button'); b.style.background = c; b.setAttribute('aria-label','Cor '+c);
+  b.onclick = () => { BRAND.cor = c; drawer.querySelector('[data-k=cor]').value = c; applyBrand(); };
+  sw.appendChild(b);
+});
+document.getElementById('resetBrand').onclick = () => {
+  Object.assign(BRAND, DEFAULT); drawer.querySelectorAll('[data-k]').forEach(i => i.value = BRAND[i.dataset.k]); applyBrand();
+};
+
+/* ---------- Loop ---------- */
+function resize(){
+  const w = viewer.clientWidth, h = viewer.clientHeight;
+  renderer.setSize(w,h,false); camera.aspect = w/h; camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(viewer); resize();
+
+function loop(now){
+  if (tween){
+    const k = Math.min(1,(now-tween.s)/tween.dur), e = ease(k);
+    camera.position.lerpVectors(tween.p0,tween.p1,e);
+    controls.target.lerpVectors(tween.t0,tween.t1,e);
+    if (k>=1) tween = null;
+  }
+  if (!paused){ controls.update(); renderer.render(scene,camera); }
+  requestAnimationFrame(loop);
+}
+applyBrand(); setHour(16.5); renderList(); requestAnimationFrame(loop);
+</script>
+</body>
+
+</html>

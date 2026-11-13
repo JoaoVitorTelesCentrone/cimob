@@ -1,0 +1,17 @@
+# O build da imagem do bot copia a raiz do monorepo; nada disto precisa ir junto.
+**/node_modules
+**/.next
+**/dist
+**/coverage
+**/.turbo
+**/.env
+**/.env.*
+!**/.env.example
+.git
+.features-gen
+playwright-report
+test-results
+reference
+e2e
+supabase/.temp
+supabase/.branches

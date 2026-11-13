@@ -1,0 +1,44 @@
+{
+  "name": "@c1imob/web",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests --coverage",
+    "test:bdd": "vitest run --passWithNoTests tests/steps",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@c1imob/three": "workspace:*",
+    "@c1imob/ui": "workspace:*",
+    "@dnd-kit/core": "^6.3.1",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.119.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "cn": "^0.5.2",
+    "next": "16.4.6",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "tailwind-merge": "^3.7.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@amiceli/vitest-cucumber": "^8.0.0",
+    "@c1imob/config": "workspace:*",
+    "@tailwindcss/turbopack": "4.3.3",
+    "@types/node": "^22.20.5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^5.1.0",
+    "eslint": "^9.30.0",
+    "tailwindcss": "4.3.3",
+    "typescript": "^5",
+    "vitest": "^5.1.0"
+  },
+  "type": "module"
+}

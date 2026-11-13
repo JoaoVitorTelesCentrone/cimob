@@ -1,0 +1,1 @@
+ALTER TABLE "organizations" ADD COLUMN "rotation_cursor" uuid;

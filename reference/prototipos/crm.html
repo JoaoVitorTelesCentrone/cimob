@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CRM Imobiliário white label — demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--brand:#155F4B;--ink:#0B1F17;--muted:#4D5A52;--line:#E0DDD0;--bg:#F6F4E9;--card:#fff;--ok:#16a34a;--warn:#d97706;--bad:#dc2626}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;font-size:14px}
+button,input,select,textarea{font:inherit;color:inherit}
+.layout{display:grid;grid-template-columns:232px 1fr;min-height:100vh}
+aside.side{background:#fff;border-right:1px solid var(--line);padding:16px 12px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 16px}
+.mark{width:36px;height:36px;border-radius:10px;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:800}
+.brand b{display:block;font-size:15px;line-height:1.1}
+.brand span{font-size:11.5px;color:var(--muted)}
+.nav{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:700;color:#3a4250;border:0;background:none;text-align:left;width:100%}
+.nav:hover{background:var(--bg)}
+.nav.on{background:color-mix(in srgb,var(--brand) 12%,#fff);color:var(--brand)}
+.nav .ic{width:18px;text-align:center}
+.nav .badge{margin-left:auto;background:var(--bad);color:#fff;border-radius:999px;font-size:11px;padding:1px 7px}
+.side .foot{margin-top:auto;font-size:11.5px;color:var(--muted);padding:8px}
+.side .foot button{margin-top:8px}
+main{min-width:0;padding:18px 24px 80px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.topbar h1{margin:0;font-size:24px;letter-spacing:-.01em}
+.topbar .sub{color:var(--muted);font-size:13px;margin-top:2px}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sel,.inp{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px}
+.btn{border:0;border-radius:10px;padding:9px 14px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap}
+.btn-brand{background:var(--brand);color:#fff}
+.btn-ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+.btn-danger{background:#fff;border:1px solid #f3c4c4;color:var(--bad)}
+.btn-sm{padding:6px 10px;font-size:12.5px;border-radius:8px}
+.demo{background:#14181f;color:#e7e9ee;font-size:12px;padding:6px 12px;text-align:center}
+.alert{background:#fff4e5;border:1px solid #f6d7a7;color:#7a4b06;border-radius:12px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:14px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}
+.kpi span{font-size:12px;color:var(--muted);font-weight:600}
+.kpi b{display:block;font-size:24px;margin-top:4px;letter-spacing:-.01em}
+.kpi small{font-size:11.5px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1.2fr 1fr;gap:14px;margin-bottom:14px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h3{margin:0 0 12px;font-size:15px}
+.funnel .r{display:grid;grid-template-columns:130px 1fr 44px;gap:10px;align-items:center;margin:7px 0;font-size:13px}
+.funnel .bar{height:22px;border-radius:6px;background:var(--brand);opacity:.85}
+.funnel .bg{background:var(--bg);border-radius:6px}
+.funnel .pct{font-size:11.5px;color:var(--muted);padding-left:140px;margin-top:-4px}
+@media (max-width:820px){.funnel .r{grid-template-columns:110px 1fr 34px}.funnel .pct{padding-left:120px}}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11.5px;color:var(--muted);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px;border-bottom:1px solid #f0f1f4;vertical-align:middle}
+tr.click{cursor:pointer}
+tr.click:hover td{background:#fafbfc}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.tag{display:inline-block;font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px;background:var(--bg);color:#3a4250;white-space:nowrap}
+.st-novo{background:#e0ecff;color:#1d4ed8}.st-qualificado{background:#ede9fe;color:#6d28d9}.st-atendimento{background:#e0f2fe;color:#0369a1}
+.st-visita_marcada{background:#fef3c7;color:#b45309}.st-visita_feita{background:#ffedd5;color:#c2410c}.st-proposta{background:#fce7f3;color:#be185d}
+.st-ganho{background:#dcfce7;color:#15803d}.st-perdido{background:#eceef2;color:#5b6472}
+.u-disp{background:#dcfce7;color:#15803d}.u-res{background:#fef3c7;color:#b45309}.u-vend{background:#eceef2;color:#5b6472}
+.av{width:26px;height:26px;border-radius:50%;display:inline-grid;place-items:center;color:#fff;font-size:10.5px;font-weight:800;flex:none}
+.who{display:flex;align-items:center;gap:8px}
+.late{color:var(--bad);font-weight:700}
+.board{display:flex;gap:12px;overflow-x:auto;padding-bottom:10px;align-items:flex-start}
+.col{background:#eceef2;border-radius:14px;width:262px;flex:none;display:flex;flex-direction:column;max-height:calc(100vh - 150px)}
+.col .hd{padding:12px 12px 8px;display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:13px}
+.col .hd span{color:var(--muted);font-weight:700}
+.col .body{padding:0 8px 8px;overflow:auto;display:flex;flex-direction:column;gap:8px;min-height:60px}
+.col.over{outline:2px dashed var(--brand);outline-offset:-2px}
+.lc{background:#fff;border-radius:11px;padding:11px;border:1px solid var(--line);cursor:grab;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.lc:active{cursor:grabbing}
+.lc .t{font-weight:800;display:flex;justify-content:space-between;gap:6px}
+.lc .m{font-size:12px;color:var(--muted);margin:4px 0 8px;line-height:1.4}
+.lc .f{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.lc .f .tag{font-size:10.5px}
+.lc.dragging{opacity:.4}
+.lc.flash{outline:2px solid var(--brand);box-shadow:0 0 0 5px color-mix(in srgb,var(--brand) 18%,transparent)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.empty{color:var(--muted);padding:24px;text-align:center}
+.drawer-bg{position:fixed;inset:0;background:rgba(15,20,30,.35);z-index:40;display:none}
+.drawer-bg.open{display:block}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(520px,100vw);background:#fff;z-index:41;transform:translateX(102%);transition:transform .22s;display:flex;flex-direction:column}
+.drawer.open{transform:none}
+.drawer .hd{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.drawer .hd h2{margin:0;font-size:20px}
+.drawer .hd .sub{font-size:12.5px;color:var(--muted);margin-top:4px}
+.drawer .bd{padding:18px 20px;overflow:auto;flex:1;display:flex;flex-direction:column;gap:16px}
+.x{background:none;border:0;font-size:24px;cursor:pointer;color:var(--muted);line-height:1}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{background:var(--bg);border-radius:10px;padding:9px 11px}
+.field span{display:block;font-size:11px;color:var(--muted);font-weight:700}
+.field b{font-size:13.5px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label.l{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:700;color:var(--muted)}
+label.l .sel,label.l .inp{color:var(--ink);font-weight:500}
+.timeline{display:flex;flex-direction:column;gap:0}
+.ev{display:grid;grid-template-columns:14px 1fr;gap:10px;padding-bottom:12px;position:relative}
+.ev:before{content:"";position:absolute;left:6px;top:14px;bottom:0;width:2px;background:var(--line)}
+.ev:last-child:before{display:none}
+.ev i{width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid var(--brand);margin-top:2px}
+.ev .tx{font-size:13px}
+.ev .tm{font-size:11.5px;color:var(--muted)}
+.qa{background:#f7f8fa;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:13px;line-height:1.55}
+.qa b{color:var(--brand)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.modal{position:fixed;inset:0;display:none;place-items:center;z-index:50;background:rgba(15,20,30,.35);padding:16px}
+.modal.open{display:grid}
+.modal .box{background:#fff;border-radius:16px;width:min(520px,100%);padding:20px;display:flex;flex-direction:column;gap:12px;max-height:92vh;overflow:auto}
+.modal h3{margin:0}
+.team{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.mem{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px}
+.mem .top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.mem .top b{display:block}
+.mem .top span{font-size:12px;color:var(--muted)}
+.mem .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.switch{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;cursor:pointer}
+.switch input{width:36px;height:20px;accent-color:var(--brand)}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#14181f;color:#fff;padding:10px 16px;border-radius:10px;font-weight:600;font-size:13px;z-index:60;display:none}
+.mobnav{display:none}
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(3,1fr)}.grid2{grid-template-columns:1fr}}
+@media (max-width:820px){
+  .layout{grid-template-columns:1fr}
+  aside.side{display:none}
+  main{padding:14px 12px 90px}
+  .mobnav{display:flex;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);z-index:30;justify-content:space-around;padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+  .mobnav button{background:none;border:0;font-size:11px;font-weight:700;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px}
+  .mobnav button.on{color:var(--brand)}
+  .mobnav .ic{font-size:17px}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .hide-m{display:none}
+  .fields,.row2{grid-template-columns:1fr}
+}
+/* Center One DS */
+.topbar h1,.kpi b,.panel h3,.drawer .hd h2,.modal h3,.brand b{font-family:'Bricolage Grotesque',Inter,sans-serif}
+.topbar h1{font-weight:800;letter-spacing:-.01em}
+aside.side{background:#0B1F17;border-right:0;color:#F6F4E9}
+.brand b{color:#F6F4E9}
+.brand span,.side .foot{color:#A9B5AD}
+.mark{background:#C8FF5A;color:#0B1F17}
+.nav{color:#C9D3CC}
+.nav:hover{background:rgba(246,244,233,.07)}
+.nav.on{background:#C8FF5A;color:#0B1F17}
+.side .sel{background:#12291F;border-color:#22392F;color:#F6F4E9}
+.side .btn-ghost{background:transparent;border-color:#22392F;color:#F6F4E9}
+.btn{border-radius:999px}
+.demo{background:#071510}
+.col{background:#ECEADC}
+.mobnav button.on{color:#155F4B}
+</style>
+</head>
+<body>
+<div class="demo"><b>Demo white label</b> · dados fictícios · as alterações ficam salvas só neste navegador</div>
+<div class="layout">
+  <aside class="side">
+    <div class="brand"><div class="mark" id="mark">HI</div><div><b id="orgName">Horizonte Imóveis</b><span>CRM de leads</span></div></div>
+    <button class="nav on" data-v="dash"><span class="ic">◧</span>Painel</button>
+    <button class="nav" data-v="pipe"><span class="ic">▥</span>Funil</button>
+    <button class="nav" data-v="leads"><span class="ic">☰</span>Leads<span class="badge" id="lateBadge" style="display:none"></span></button>
+    <button class="nav" data-v="imoveis"><span class="ic">⌂</span>Imóveis</button>
+    <button class="nav" data-v="equipe" id="navEquipe"><span class="ic">☺</span>Equipe</button>
+    <div class="foot">Ver como
+      <select class="sel" id="asSel" style="width:100%;margin-top:6px"></select>
+      <button class="btn btn-ghost btn-sm" id="resetDemo" style="width:100%">Restaurar dados da demo</button>
+    </div>
+  </aside>
+  <main id="main"></main>
+</div>
+<nav class="mobnav" id="mobnav">
+  <button data-v="dash" class="on"><span class="ic">◧</span>Painel</button>
+  <button data-v="pipe"><span class="ic">▥</span>Funil</button>
+  <button data-v="leads"><span class="ic">☰</span>Leads</button>
+  <button data-v="imoveis"><span class="ic">⌂</span>Imóveis</button>
+  <button data-v="mais"><span class="ic">⋯</span>Mais</button>
+</nav>
+
+<div class="drawer-bg" id="dbg"></div>
+<div class="drawer" id="drawer"></div>
+
+<div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== Config white label ===== */
+const ORG = {nome:'Horizonte Imóveis', cor:'#155F4B'};
+const STAGES = [['novo','Novo'],['qualificado','Qualificado'],['atendimento','Em atendimento'],['visita_marcada','Visita marcada'],['visita_feita','Visita feita'],['proposta','Proposta'],['ganho','Ganho'],['perdido','Perdido']];
+const SL = Object.fromEntries(STAGES);
+const ORDER = Object.fromEntries(STAGES.map((s,i)=>[s[0],i]));
+const ORIGENS = ['Anúncio Meta','Instagram','Portal ZAP','Site','Indicação'];
+const MOTIVOS = ['Preço','Já comprou','Sem resposta','Localização','Financiamento negado','Outro'];
+const HOUR = 3600e3, DAY = 24*HOUR;
+
+/* ===== Dados de demo ===== */
+let seed = 7; const R = () => (seed = (seed*16807) % 2147483647) / 2147483647;
+const pick = a => a[Math.floor(R()*a.length)];
+function demoData(){
+  seed = 7;
+  const now = Date.now();
+  const corretores = [
+    {id:'c1',nome:'Marina Alves',cor:'#155F4B',ativo:true},
+    {id:'c2',nome:'Rafael Souza',cor:'#2563eb',ativo:true},
+    {id:'c3',nome:'Juliana Prado',cor:'#c2410c',ativo:true},
+    {id:'c4',nome:'Diego Martins',cor:'#7c3aed',ativo:true}];
+  const imoveis = [
+    {cod:'AUR-502',titulo:'Residencial Aurora · unid. 502',bairro:'Vila Mariana',tipo:'Lançamento',quartos:3,area:82,preco:765000,status:'disp'},
+    {cod:'AUR-904',titulo:'Residencial Aurora · unid. 904',bairro:'Vila Mariana',tipo:'Lançamento',quartos:2,area:64,preco:603000,status:'disp'},
+    {cod:'AUR-1001',titulo:'Residencial Aurora · cobertura 1001',bairro:'Vila Mariana',tipo:'Lançamento',quartos:4,area:168,preco:1690000,status:'disp'},
+    {cod:'AUR-703',titulo:'Residencial Aurora · unid. 703',bairro:'Vila Mariana',tipo:'Lançamento',quartos:2,area:64,preco:589000,status:'res'},
+    {cod:'AP-123',titulo:'Apto 3 dorms reformado',bairro:'Saúde',tipo:'Usado',quartos:3,area:88,preco:890000,status:'disp'},
+    {cod:'AP-210',titulo:'Apto 2 dorms perto do metrô',bairro:'Moema',tipo:'Usado',quartos:2,area:67,preco:980000,status:'disp'},
+    {cod:'CA-045',titulo:'Casa térrea com quintal',bairro:'Jabaquara',tipo:'Usado',quartos:3,area:140,preco:1150000,status:'disp'},
+    {cod:'AP-318',titulo:'Studio mobiliado',bairro:'Vila Clementino',tipo:'Usado',quartos:1,area:32,preco:455000,status:'vend'}];
+  const nomes = ['Ana Ribeiro','Bruno Lima','Carla Mendes','Daniel Rocha','Eduarda Costa','Felipe Nunes','Gabriela Dias','Henrique Alves','Isabela Freitas','João Pedro Silva','Karina Lopes','Lucas Barros','Mariana Teixeira','Nicolas Moura','Olívia Castro','Paulo Henrique','Renata Pires','Sérgio Duarte','Tatiane Gomes','Vinícius Ramos','Larissa Melo','Thiago Cardoso','Patrícia Viana','André Fonseca','Beatriz Nogueira','Caio Azevedo','Débora Santana','Fábio Correia'];
+  const faixas = ['até R$ 500 mil','R$ 500–700 mil','R$ 700–900 mil','R$ 900 mil–1,2 mi','acima de R$ 1,2 mi'];
+  const prazos = ['imediato','até 3 meses','3 a 6 meses','mais de 6 meses'];
+  const stageW = ['novo','novo','novo','qualificado','qualificado','atendimento','atendimento','atendimento','visita_marcada','visita_marcada','visita_feita','visita_feita','proposta','ganho','perdido','perdido'];
+  const leads = nomes.map((nome,i) => {
+    const im = pick(imoveis.filter(x=>x.status!=='vend'));
+    const created = now - Math.floor(R()*20*DAY) - Math.floor(R()*10*HOUR);
+    let stage = pick(stageW);
+    if (i<2){ stage='atendimento'; }
+    if (i===5||i===14) stage='proposta';
+    if (i===9||i===20) stage='ganho';
+    const c = corretores[i%4];
+    const assigned = stage!=='novo';
+    const firstResp = assigned && !(i<2) ? Math.round(4 + R()*R()*240) : null;
+    const lead = {
+      id:'L'+(1000+i), nome, tel:'55119'+String(80000000+Math.floor(R()*19999999)).slice(0,8),
+      origem: pick(ORIGENS), imovel: im.cod, intencao: R()<.85?'Compra':'Aluguel',
+      regiao: im.bairro, faixa: pick(faixas), prazo: pick(prazos), visita: R()<.7,
+      stage, corretor: assigned ? c.id : null, criado: created,
+      atribuido: assigned ? created + 4*60e3 : null,
+      primeiraResp: firstResp != null ? created + 4*60e3 + firstResp*60e3 : null,
+      visitaData: ['visita_marcada'].includes(stage) ? now + Math.floor(1+R()*5)*DAY : (['visita_feita','proposta','ganho'].includes(stage) ? created + 3*DAY : null),
+      proximo: stage==='perdido'||stage==='ganho' ? '' : pick(['Enviar simulação de financiamento','Ligar para confirmar visita','Mandar plantas e tabela','Retomar contato']),
+      motivo: stage==='perdido' ? pick(MOTIVOS) : '',
+      eventos: []
+    };
+    if (i<2){ lead.atribuido = now - (3+i)*HOUR; lead.criado = lead.atribuido - 5*60e3; lead.primeiraResp = null; }
+    const ev = (t,tx)=>lead.eventos.push({t,tx});
+    ev(lead.criado, `Chegou pelo ${lead.origem}${lead.origem==='Anúncio Meta'?' (clique para WhatsApp)':''} com o código ${lead.imovel}`);
+    if (stage!=='novo') ev(lead.criado+3*60e3, `Bot qualificou: ${lead.intencao.toLowerCase()}, ${lead.faixa}, prazo ${lead.prazo}`);
+    if (lead.atribuido) ev(lead.atribuido, `Atribuído a ${c.nome}`);
+    if (lead.primeiraResp) ev(lead.primeiraResp, `${c.nome.split(' ')[0]} respondeu (${firstResp} min)`);
+    if (ORDER[stage]>=ORDER.visita_marcada && stage!=='perdido') ev(lead.criado+2*DAY, 'Visita marcada');
+    if (ORDER[stage]>=ORDER.visita_feita && stage!=='perdido') ev(lead.criado+3*DAY, 'Visita realizada');
+    if (ORDER[stage]>=ORDER.proposta && stage!=='perdido') ev(lead.criado+5*DAY, 'Proposta enviada');
+    if (stage==='ganho') ev(lead.criado+8*DAY, 'Negócio fechado');
+    if (stage==='perdido') ev(lead.criado+4*DAY, `Perdido: ${lead.motivo}`);
+    return lead;
+  });
+  return {corretores, imoveis, leads, roundRobin:true, rrIdx:0};
+}
+
+const KEY='crm-imob-integrado-v1';
+let DB;
+try { DB = JSON.parse(localStorage.getItem(KEY)) || demoData(); } catch(e){ DB = demoData(); }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch(e){} };
+
+/* ===== Estado de UI ===== */
+let view='dash', as='gestor', period=30, q='', fStage='', fOrig='', openId=null;
+
+/* ===== Helpers ===== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtR = n => n.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+const cor = id => DB.corretores.find(c=>c.id===id);
+const ini = n => n.split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+const av = c => c ? `<span class="av" style="background:${c.cor}" title="${esc(c.nome)}">${ini(c.nome)}</span>` : `<span class="av" style="background:#c3c8d1" title="Sem dono">?</span>`;
+function ago(t){ const d=Date.now()-t; if(d<HOUR) return Math.max(1,Math.round(d/60e3))+' min'; if(d<DAY) return Math.round(d/HOUR)+' h'; return Math.round(d/DAY)+' d'; }
+const dt = t => new Date(t).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+const stTag = s => `<span class="tag st-${s}">${SL[s]}</span>`;
+const isLate = l => l.corretor && !l.primeiraResp && l.atribuido && Date.now()-l.atribuido > 2*HOUR && !['perdido','ganho'].includes(l.stage);
+const visible = () => DB.leads.filter(l => as==='gestor' || l.corretor===as);
+const inPeriod = l => Date.now()-l.criado <= period*DAY;
+function toast(m){ const t=$('#toast'); t.textContent=m; t.style.display='block'; clearTimeout(toast.h); toast.h=setTimeout(()=>t.style.display='none',2200); }
+const median = a => { if(!a.length) return null; const s=[...a].sort((x,y)=>x-y), m=Math.floor(s.length/2); return s.length%2?s[m]:(s[m-1]+s[m])/2; };
+const respMin = l => l.primeiraResp && l.atribuido ? (l.primeiraResp-l.atribuido)/60e3 : null;
+const reached = (l,st) => l.stage!=='perdido' && ORDER[l.stage] >= ORDER[st];
+function addEv(l,tx){ l.eventos.push({t:Date.now(),tx}); }
+
+/* ===== Views ===== */
+function header(title, sub, tools=''){
+  return `<div class="topbar"><div><h1>${title}</h1><div class="sub">${sub}</div></div><div class="tools">${tools}</div></div>`;
+}
+function lateAlert(){
+  const late = visible().filter(isLate);
+  if(!late.length) return '';
+  return `<div class="alert"><span>⚠️ <b>${late.length} lead${late.length>1?'s':''} sem primeira resposta há mais de 2 h:</b> ${late.map(l=>esc(l.nome)).join(', ')}</span><button class="btn btn-sm btn-ghost" onclick="go('leads','late')">Ver agora</button></div>`;
+}
+
+function vDash(){
+  const L = visible().filter(inPeriod);
+  const qual = L.filter(l=>l.stage!=='novo');
+  const vis = L.filter(l=>reached(l,'visita_feita'));
+  const prop = L.filter(l=>reached(l,'proposta'));
+  const won = L.filter(l=>l.stage==='ganho');
+  const rm = median(L.map(respMin).filter(x=>x!=null));
+  const funnel = [['Leads',L.length],['Qualificados',qual.length],['Em atendimento+',L.filter(l=>reached(l,'atendimento')).length],['Visita marcada+',L.filter(l=>reached(l,'visita_marcada')).length],['Visita feita+',vis.length],['Proposta+',prop.length],['Ganho',won.length]];
+  const max = Math.max(1,funnel[0][1]);
+  const byOrig = ORIGENS.map(o=>{ const x=L.filter(l=>l.origem===o); return [o,x.length,x.filter(l=>l.stage!=='novo').length,x.filter(l=>reached(l,'visita_feita')).length]; }).filter(r=>r[1]);
+  const team = DB.corretores.filter(c=>as==='gestor'||c.id===as).map(c=>{ const x=L.filter(l=>l.corretor===c.id); return {c,n:x.length,rm:median(x.map(respMin).filter(v=>v!=null)),vis:x.filter(l=>reached(l,'visita_feita')).length,prop:x.filter(l=>reached(l,'proposta')).length,late:x.filter(isLate).length}; });
+  const tools = `<select class="sel" onchange="period=+this.value;render()">${[7,30].map(p=>`<option value="${p}" ${p===period?'selected':''}>Últimos ${p} dias</option>`).join('')}</select><button class="btn btn-brand" onclick="newLead()">+ Novo lead</button>`;
+  return header(as==='gestor'?'Painel da imobiliária':'Meu painel', as==='gestor'?'Do anúncio à visita, por origem e por corretor':'Seus leads, visitas e propostas', tools) + lateAlert() + `
+  <div class="kpis">
+    <div class="kpi"><span>Leads</span><b>${L.length}</b><small>no período</small></div>
+    <div class="kpi"><span>Qualificados</span><b>${qual.length}</b><small>${L.length?Math.round(qual.length/L.length*100):0}% dos leads</small></div>
+    <div class="kpi"><span>1ª resposta (mediana)</span><b>${rm==null?'–':Math.round(rm)+' min'}</b><small>após atribuição</small></div>
+    <div class="kpi"><span>Visitas feitas</span><b>${vis.length}</b><small>${qual.length?Math.round(vis.length/qual.length*100):0}% dos qualificados</small></div>
+    <div class="kpi"><span>Propostas</span><b>${prop.length}</b><small>em andamento ou fechadas</small></div>
+    <div class="kpi"><span>Negócios ganhos</span><b>${won.length}</b><small>registrados pelo corretor</small></div>
+  </div>
+  <div class="grid2">
+    <div class="panel"><h3>Funil do período</h3><div class="funnel">${funnel.map(([n,v],i)=>`<div class="r"><span>${n}</span><div class="bg"><div class="bar" style="width:${Math.max(2,v/max*100)}%"></div></div><b class="num">${v}</b></div>${i&&funnel[i-1][1]?`<div class="pct">${Math.round(v/funnel[i-1][1]*100)}% da etapa anterior</div>`:''}`).join('')}</div></div>
+    <div class="panel"><h3>Por origem</h3><table><tr><th>Origem</th><th class="num">Leads</th><th class="num">Qualif.</th><th class="num">Visitas</th></tr>${byOrig.map(r=>`<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${r[2]}</td><td class="num">${r[3]}</td></tr>`).join('')||'<tr><td colspan=4 class="empty">Sem leads</td></tr>'}</table></div>
+  </div>
+  <div class="panel"><h3>${as==='gestor'?'Por corretor':'Seu desempenho'}</h3><table><tr><th>Corretor</th><th class="num">Leads</th><th class="num">1ª resposta</th><th class="num">Visitas</th><th class="num">Propostas</th><th class="num">Atrasados</th></tr>
+  ${team.map(t=>`<tr><td><div class="who">${av(t.c)}${esc(t.c.nome)}</div></td><td class="num">${t.n}</td><td class="num">${t.rm==null?'–':Math.round(t.rm)+' min'}</td><td class="num">${t.vis}</td><td class="num">${t.prop}</td><td class="num ${t.late?'late':''}">${t.late}</td></tr>`).join('')}</table></div>`;
+}
+
+function vPipe(){
+  const L = visible();
+  return header('Funil', 'Arraste os cards entre as etapas · clique para abrir o lead', `<button class="btn btn-brand" onclick="newLead()">+ Novo lead</button>`) + lateAlert() +
+  `<div class="board">${STAGES.map(([k,n])=>{ const items=L.filter(l=>l.stage===k).sort((a,b)=>b.criado-a.criado); return `
+    <div class="col" data-st="${k}" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="dropTo(event,'${k}')">
+      <div class="hd">${n}<span>${items.length}</span></div>
+      <div class="body">${items.map(card).join('')||'<div class="empty" style="padding:10px;font-size:12px">—</div>'}</div>
+    </div>`; }).join('')}</div>`;
+}
+function card(l){
+  const im = DB.imoveis.find(i=>i.cod===l.imovel);
+  return `<div class="lc${l.flash?' flash':''}" draggable="true" ondragstart="event.dataTransfer.setData('text/plain','${l.id}');this.classList.add('dragging')" ondragend="this.classList.remove('dragging')" onclick="openLead('${l.id}')">
+    <div class="t"><span>${esc(l.nome)}</span>${isLate(l)?'<span class="late" title="Sem resposta há +2h">⏱</span>':''}</div>
+    <div class="m">${esc(l.imovel)}${im?' · '+esc(im.bairro):''}<br>${esc(l.faixa)} · ${esc(l.prazo)}</div>
+    <div class="f"><span class="tag">${esc(l.origem)}</span><span class="who" style="gap:6px;font-size:11.5px;color:var(--muted)">${ago(l.criado)} ${av(cor(l.corretor))}</span></div>
+  </div>`;
+}
+function dropTo(e,st){
+  e.preventDefault(); document.querySelectorAll('.col').forEach(c=>c.classList.remove('over'));
+  const l = DB.leads.find(x=>x.id===e.dataTransfer.getData('text/plain')); if(!l || l.stage===st) return;
+  if (st==='perdido'){ askLost(l); return; }
+  setStage(l,st);
+}
+function setStage(l,st,extra=''){
+  const from=l.stage; l.stage=st;
+  if (st!=='novo' && !l.corretor) assign(l);
+  if (st==='visita_marcada' && !l.visitaData) l.visitaData = Date.now()+2*DAY;
+  addEv(l,`Etapa: ${SL[from]} → ${SL[st]}${extra}`); save(); render(); if(openId===l.id) openLead(l.id); toast(`${l.nome.split(' ')[0]} → ${SL[st]}`);
+}
+
+function vLeads(onlyLate){
+  let L = visible();
+  if (onlyLate) L = L.filter(isLate);
+  if (q) L = L.filter(l=>(l.nome+l.tel+l.imovel+l.regiao).toLowerCase().includes(q.toLowerCase()));
+  if (fStage) L = L.filter(l=>l.stage===fStage);
+  if (fOrig) L = L.filter(l=>l.origem===fOrig);
+  L.sort((a,b)=>(isLate(b)-isLate(a)) || b.criado-a.criado);
+  return header('Leads', `${L.length} lead${L.length!==1?'s':''}${onlyLate?' sem resposta há +2 h':''}`, `<button class="btn btn-brand" onclick="newLead()">+ Novo lead</button>`) + `
+  <div class="filters">
+    <input class="inp" placeholder="Buscar nome, telefone, imóvel…" value="${esc(q)}" oninput="q=this.value;renderKeep(this)" style="min-width:240px">
+    <select class="sel" onchange="fStage=this.value;render()"><option value="">Todas as etapas</option>${STAGES.map(([k,n])=>`<option value="${k}" ${fStage===k?'selected':''}>${n}</option>`).join('')}</select>
+    <select class="sel" onchange="fOrig=this.value;render()"><option value="">Todas as origens</option>${ORIGENS.map(o=>`<option ${fOrig===o?'selected':''}>${o}</option>`).join('')}</select>
+    ${onlyLate?`<button class="btn btn-ghost" onclick="go('leads')">Ver todos</button>`:''}
+  </div>
+  <div class="panel" style="padding:0;overflow:auto"><table>
+    <tr><th>Lead</th><th>Etapa</th><th class="hide-m">Imóvel</th><th class="hide-m">Origem</th><th class="hide-m">Faixa</th><th>Corretor</th><th class="num">Chegou há</th></tr>
+    ${L.map(l=>`<tr class="click" onclick="openLead('${l.id}')"><td><b>${esc(l.nome)}</b>${isLate(l)?' <span class="late">⏱ sem resposta</span>':''}<div style="font-size:12px;color:var(--muted)">${esc(l.intencao)} · ${esc(l.regiao)}</div></td><td>${stTag(l.stage)}</td><td class="hide-m">${esc(l.imovel)}</td><td class="hide-m">${esc(l.origem)}</td><td class="hide-m">${esc(l.faixa)}</td><td>${av(cor(l.corretor))}</td><td class="num">${ago(l.criado)}</td></tr>`).join('') || '<tr><td colspan=7 class="empty">Nenhum lead encontrado</td></tr>'}
+  </table></div>`;
+}
+function renderKeep(inp){ const pos=inp.selectionStart; render(); const n=document.querySelector('.filters .inp'); n.focus(); n.setSelectionRange(pos,pos); }
+
+function vImoveis(){
+  const L = DB.leads;
+  return header('Imóveis e unidades', 'Mudou o status aqui, muda no espelho de vendas 3D do site', `<button class="btn btn-ghost" onclick="newImovel()">+ Imóvel</button>`) + `
+  <div class="panel" style="padding:0;overflow:auto"><table>
+    <tr><th>Código</th><th>Imóvel</th><th class="hide-m">Tipo</th><th class="hide-m">Área</th><th class="num">Preço</th><th class="num">Leads</th><th class="num hide-m">Visitas</th><th>Status</th></tr>
+    ${DB.imoveis.map(i=>{ const x=L.filter(l=>l.imovel===i.cod); return `<tr>
+      <td><b>${esc(i.cod)}</b></td><td>${esc(i.titulo)}<div style="font-size:12px;color:var(--muted)">${esc(i.bairro)} · ${i.quartos} dorm.</div></td>
+      <td class="hide-m"><span class="tag">${esc(i.tipo)}</span></td><td class="hide-m">${i.area} m²</td><td class="num">${fmtR(i.preco)}</td>
+      <td class="num">${x.length}</td><td class="num hide-m">${x.filter(l=>reached(l,'visita_feita')).length}</td>
+      <td><select class="sel tag u-${i.status}" style="border:0" onchange="setUnit('${i.cod}',this.value)" ${as!=='gestor'?'disabled title="Só o gestor altera"':''}>
+        ${[['disp','Disponível'],['res','Reservado'],['vend','Vendido']].map(([k,n])=>`<option value="${k}" ${i.status===k?'selected':''}>${n}</option>`).join('')}</select></td></tr>`; }).join('')}
+  </table></div>`;
+}
+function setUnit(cod,st){ const i=DB.imoveis.find(x=>x.cod===cod); i.status=st; save(); if(window.parent!==window) parent.postMessage({type:'unitStatus',cod,status:st},'*'); render(); toast(`${cod} agora está ${({disp:'disponível',res:'reservado',vend:'vendido'})[st]}`); }
+
+function vEquipe(){
+  const L = DB.leads.filter(inPeriod);
+  return header('Equipe', 'Distribuição de leads e desempenho por corretor', `<label class="switch"><input type="checkbox" ${DB.roundRobin?'checked':''} onchange="DB.roundRobin=this.checked;save();toast(this.checked?'Rodízio automático ligado':'Distribuição manual')"> Rodízio automático</label><button class="btn btn-ghost" onclick="newCorretor()">+ Corretor</button>`) + `
+  <div class="team">${DB.corretores.map(c=>{ const x=L.filter(l=>l.corretor===c.id); const rm=median(x.map(respMin).filter(v=>v!=null)); return `
+    <div class="mem"><div class="top">${av(c)}<div><b>${esc(c.nome)}</b><span>${c.ativo?'Recebendo leads':'Pausado'}</span></div></div>
+    <div class="stats">
+      <div class="field"><span>Leads (${period}d)</span><b>${x.length}</b></div>
+      <div class="field"><span>1ª resposta</span><b>${rm==null?'–':Math.round(rm)+' min'}</b></div>
+      <div class="field"><span>Visitas</span><b>${x.filter(l=>reached(l,'visita_feita')).length}</b></div>
+      <div class="field"><span>Atrasados</span><b class="${x.filter(isLate).length?'late':''}">${x.filter(isLate).length}</b></div>
+    </div>
+    <label class="switch" style="margin-top:12px"><input type="checkbox" ${c.ativo?'checked':''} onchange="toggleCor('${c.id}',this.checked)"> No rodízio</label></div>`; }).join('')}</div>`;
+}
+function toggleCor(id,v){ cor(id).ativo=v; save(); render(); }
+
+/* ===== Lead (drawer) ===== */
+function openLead(id){
+  openId=id; const l=DB.leads.find(x=>x.id===id); const im=DB.imoveis.find(i=>i.cod===l.imovel); const c=cor(l.corretor);
+  const wa = `https://wa.me/${l.tel}?text=${encodeURIComponent(`Olá, ${l.nome.split(' ')[0]}! Aqui é ${c?c.nome.split(' ')[0]:'a equipe'} da ${ORG.nome}. Vi seu interesse no ${l.imovel}.`)}`;
+  $('#drawer').innerHTML = `
+  <div class="hd"><div><h2>${esc(l.nome)}</h2><div class="sub">${stTag(l.stage)} · chegou há ${ago(l.criado)} pelo ${esc(l.origem)}</div></div><button class="x" onclick="closeLead()" aria-label="Fechar">×</button></div>
+  <div class="bd">
+    ${isLate(l)?`<div class="alert" style="margin:0">⏱ Atribuído há ${ago(l.atribuido)} e ainda sem resposta.</div>`:''}
+    <div class="actions">
+      <a class="btn btn-brand" href="${wa}" target="_blank" rel="noopener">Abrir WhatsApp</a>
+      ${!l.primeiraResp && l.corretor?`<button class="btn btn-ghost" onclick="markResp('${l.id}')">Marquei que respondi</button>`:''}
+      ${l.stage!=='perdido'?`<button class="btn btn-danger" onclick="askLost(DB.leads.find(x=>x.id==='${l.id}'))">Marcar perdido</button>`:''}
+    </div>
+    <div class="row2">
+      <label class="l">Etapa<select class="sel" onchange="this.value==='perdido'?askLost(DB.leads.find(x=>x.id==='${l.id}')):setStage(DB.leads.find(x=>x.id==='${l.id}'),this.value)">${STAGES.map(([k,n])=>`<option value="${k}" ${l.stage===k?'selected':''}>${n}</option>`).join('')}</select></label>
+      <label class="l">Corretor<select class="sel" onchange="reassign('${l.id}',this.value)" ${as!=='gestor'?'disabled':''}><option value="">Sem dono</option>${DB.corretores.map(x=>`<option value="${x.id}" ${l.corretor===x.id?'selected':''}>${esc(x.nome)}</option>`).join('')}</select></label>
+    </div>
+    <div class="fields">
+      <div class="field"><span>Telefone</span><b>+${esc(l.tel)}</b></div>
+      <div class="field"><span>Imóvel</span><b>${esc(l.imovel)}</b>${im?`<div style="font-size:12px;color:var(--muted)">${esc(im.titulo)} · ${fmtR(im.preco)}</div>`:''}</div>
+      <div class="field"><span>Visita</span><b>${l.visitaData?dt(l.visitaData):'—'}</b></div>
+      <div class="field"><span>1ª resposta</span><b>${respMin(l)!=null?Math.round(respMin(l))+' min':'pendente'}</b></div>
+    </div>
+    <div><div style="font-weight:800;margin-bottom:8px">Qualificação feita pelo bot</div>
+      <div class="qa"><b>Intenção:</b> ${esc(l.intencao)} · <b>Região:</b> ${esc(l.regiao)}<br><b>Faixa:</b> ${esc(l.faixa)} · <b>Prazo:</b> ${esc(l.prazo)}<br><b>Quer visitar:</b> ${l.visita?'sim':'ainda não'}${l.motivo?`<br><b>Motivo da perda:</b> ${esc(l.motivo)}`:''}</div></div>
+    <div class="row2">
+      <label class="l">Próximo passo<input class="inp" value="${esc(l.proximo)}" onchange="DB.leads.find(x=>x.id==='${l.id}').proximo=this.value;save()"></label>
+      <label class="l">Data da visita<input class="inp" type="datetime-local" value="${l.visitaData?new Date(l.visitaData-new Date().getTimezoneOffset()*60e3).toISOString().slice(0,16):''}" onchange="setVisit('${l.id}',this.value)"></label>
+    </div>
+    <div><div style="font-weight:800;margin-bottom:8px">Histórico</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px"><input class="inp" id="noteIn" placeholder="Adicionar anotação…" style="flex:1" onkeydown="if(event.key==='Enter')addNote('${l.id}')"><button class="btn btn-ghost" onclick="addNote('${l.id}')">Salvar</button></div>
+      <div class="timeline">${[...l.eventos].sort((a,b)=>b.t-a.t).map(e=>`<div class="ev"><i></i><div><div class="tx">${esc(e.tx)}</div><div class="tm">${dt(e.t)}</div></div></div>`).join('')}</div></div>
+  </div>`;
+  $('#drawer').classList.add('open'); $('#dbg').classList.add('open');
+}
+function closeLead(){ openId=null; $('#drawer').classList.remove('open'); $('#dbg').classList.remove('open'); }
+$('#dbg').onclick = closeLead;
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeLead(); closeModal(); } });
+function addNote(id){ const v=$('#noteIn').value.trim(); if(!v) return; const l=DB.leads.find(x=>x.id===id); addEv(l,'Nota: '+v); save(); openLead(id); }
+function markResp(id){ const l=DB.leads.find(x=>x.id===id); l.primeiraResp=Date.now(); if(l.stage==='qualificado'||l.stage==='novo') l.stage='atendimento'; addEv(l,`${cor(l.corretor).nome.split(' ')[0]} respondeu (${Math.round(respMin(l))} min)`); save(); render(); openLead(id); }
+function setVisit(id,v){ const l=DB.leads.find(x=>x.id===id); if(!v) return; l.visitaData=new Date(v).getTime(); if(ORDER[l.stage]<ORDER.visita_marcada||l.stage==='perdido'){ setStage(l,'visita_marcada',` (${dt(l.visitaData)})`); } else { addEv(l,'Visita reagendada para '+dt(l.visitaData)); save(); openLead(id); } }
+function reassign(id,cid){ const l=DB.leads.find(x=>x.id===id); l.corretor=cid||null; if(cid){ l.atribuido=Date.now(); l.primeiraResp=null; addEv(l,'Atribuído a '+cor(cid).nome); } else addEv(l,'Sem dono'); save(); render(); openLead(id); }
+function assign(l){
+  const act = DB.corretores.filter(c=>c.ativo); if(!act.length) return;
+  const c = DB.roundRobin ? act[DB.rrIdx++ % act.length] : act[0];
+  l.corretor=c.id; l.atribuido=Date.now(); addEv(l,`Atribuído a ${c.nome}${DB.roundRobin?' (rodízio)':''}`);
+}
+
+/* ===== Modais ===== */
+function modal(html){ $('#modalBox').innerHTML=html; $('#modal').classList.add('open'); }
+function closeModal(){ $('#modal').classList.remove('open'); }
+$('#modal').onclick = e => { if(e.target.id==='modal') closeModal(); };
+function askLost(l){
+  modal(`<h3>Marcar ${esc(l.nome.split(' ')[0])} como perdido</h3><label class="l">Motivo<select class="sel" id="mot">${MOTIVOS.map(m=>`<option>${m}</option>`).join('')}</select></label>
+  <div class="actions" style="justify-content:flex-end"><button class="btn btn-ghost" onclick="closeModal();render()">Cancelar</button><button class="btn btn-danger" onclick="const m=$('#mot').value;const l=DB.leads.find(x=>x.id==='${l.id}');l.motivo=m;closeModal();setStage(l,'perdido',' · '+m)">Confirmar</button></div>`);
+}
+function newLead(){
+  modal(`<h3>Novo lead</h3>
+  <div class="row2"><label class="l">Nome<input class="inp" id="nNome"></label><label class="l">WhatsApp (DDI+DDD)<input class="inp" id="nTel" placeholder="5511999999999"></label></div>
+  <div class="row2"><label class="l">Origem<select class="sel" id="nOrig">${ORIGENS.map(o=>`<option>${o}</option>`).join('')}</select></label>
+  <label class="l">Imóvel<select class="sel" id="nIm">${DB.imoveis.map(i=>`<option value="${i.cod}">${i.cod} · ${esc(i.bairro)}</option>`).join('')}</select></label></div>
+  <div class="row2"><label class="l">Intenção<select class="sel" id="nInt"><option>Compra</option><option>Aluguel</option></select></label>
+  <label class="l">Faixa<input class="inp" id="nFaixa" placeholder="ex.: R$ 500–700 mil"></label></div>
+  <div class="actions" style="justify-content:flex-end"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-brand" onclick="createLead()">Criar e distribuir</button></div>`);
+  setTimeout(()=>$('#nNome').focus(),50);
+}
+function createLead(){
+  const nome=$('#nNome').value.trim(); if(!nome){ $('#nNome').focus(); return; }
+  const im=DB.imoveis.find(i=>i.cod===$('#nIm').value);
+  const l={id:'L'+Date.now(),nome,tel:$('#nTel').value.replace(/\D/g,'')||'5511900000000',origem:$('#nOrig').value,imovel:im.cod,intencao:$('#nInt').value,regiao:im.bairro,faixa:$('#nFaixa').value||'não informada',prazo:'não informado',visita:false,stage:'qualificado',corretor:null,criado:Date.now(),atribuido:null,primeiraResp:null,visitaData:null,proximo:'Primeiro contato',motivo:'',eventos:[]};
+  addEv(l,`Cadastrado manualmente (${l.origem})`);
+  if (as!=='gestor'){ l.corretor=as; l.atribuido=Date.now(); addEv(l,'Atribuído a '+cor(as).nome); } else assign(l);
+  DB.leads.unshift(l); save(); closeModal(); render(); openLead(l.id); toast('Lead criado e distribuído');
+}
+function newImovel(){
+  modal(`<h3>Novo imóvel</h3><div class="row2"><label class="l">Código<input class="inp" id="iCod" placeholder="AP-400"></label><label class="l">Bairro<input class="inp" id="iB"></label></div>
+  <label class="l">Título<input class="inp" id="iT"></label>
+  <div class="row2"><label class="l">Preço (R$)<input class="inp" id="iP" type="number"></label><label class="l">Área (m²)<input class="inp" id="iA" type="number"></label></div>
+  <div class="actions" style="justify-content:flex-end"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-brand" onclick="createImovel()">Salvar</button></div>`);
+}
+function createImovel(){ const cod=$('#iCod').value.trim().toUpperCase(); if(!cod) return; DB.imoveis.push({cod,titulo:$('#iT').value||cod,bairro:$('#iB').value||'—',tipo:'Usado',quartos:2,area:+$('#iA').value||0,preco:+$('#iP').value||0,status:'disp'}); save(); closeModal(); render(); toast('Imóvel cadastrado'); }
+function newCorretor(){
+  modal(`<h3>Novo corretor</h3><label class="l">Nome<input class="inp" id="cN"></label><div class="actions" style="justify-content:flex-end"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-brand" onclick="createCor()">Adicionar</button></div>`);
+}
+function createCor(){ const n=$('#cN').value.trim(); if(!n) return; const cores=['#0891b2','#be123c','#4d7c0f','#a16207']; DB.corretores.push({id:'c'+Date.now(),nome:n,cor:cores[DB.corretores.length%4],ativo:true}); save(); closeModal(); renderAs(); render(); }
+
+/* ===== Integração: lead vindo do bot ===== */
+window.addEventListener('message', e => {
+  const d = e.data || {}; if (d.type !== 'newLead') return;
+  const u = d.unit, a = d.lead;
+  if (u && !DB.imoveis.find(i=>i.cod===u.cod)) DB.imoveis.unshift({cod:u.cod,titulo:u.titulo,bairro:u.bairro,tipo:'Lançamento',quartos:u.quartos,area:u.area,preco:u.preco,status:u.status});
+  DB.leads.forEach(x=>x.flash=false);
+  const l = {id:'L'+Date.now(), nome:a.nome, tel:a.tel, origem:'Anúncio Meta', imovel:u?u.cod:'AUR (geral)', intencao:'Compra',
+    regiao:u?u.bairro:'Vila Mariana', faixa:a.faixa||'não informada', prazo:a.prazo||'não informado', visita:a.visita==='Sim',
+    stage:a.qualificado?'qualificado':'novo', corretor:null, criado:Date.now(), atribuido:null, primeiraResp:null, visitaData:null,
+    proximo:a.visita==='Sim'?'Combinar data da visita ao decorado':'Primeiro contato', motivo:'', eventos:[], flash:true};
+  addEv(l, `Chegou pelo Anúncio Meta (clique para WhatsApp)${u?' com o código '+u.cod:''}`);
+  if (a.objetivo) addEv(l, `Bot: objetivo = ${a.objetivo.toLowerCase()}`);
+  if (a.handoff) addEv(l, 'Lead pediu atendente: bot pausado');
+  addEv(l, a.qualificado ? `Bot qualificou: ${l.faixa}, prazo ${l.prazo}, visita ${l.visita?'sim':'ainda não'}` : `Bot: fora do critério (${a.motivo}), vai para nutrição`);
+  if (a.notas) a.notas.forEach(n => addEv(l, 'Pergunta sem resposta na ficha: “'+n+'”'));
+  if (a.qualificado) assign(l);
+  DB.leads.unshift(l); save();
+  view = 'pipe'; as = 'gestor'; renderAs(); render(); openLead(l.id);
+  parent.postMessage({type:'leadCreated', id:l.id, stage:SL[l.stage], corretor: l.corretor ? cor(l.corretor).nome : null}, '*');
+});
+
+/* ===== Navegação ===== */
+let lateOnly=false;
+function go(v,flag){ view=v; lateOnly=flag==='late'; render(); window.scrollTo(0,0); }
+function render(){
+  if (as!=='gestor' && view==='equipe') view='dash';
+  const html = {dash:vDash,pipe:vPipe,leads:()=>vLeads(lateOnly),imoveis:vImoveis,equipe:vEquipe}[view]();
+  $('#main').innerHTML = html;
+  document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('on',n.dataset.v===view));
+  document.querySelectorAll('#mobnav button').forEach(n=>n.classList.toggle('on',n.dataset.v===view));
+  const late = visible().filter(isLate).length, b=$('#lateBadge');
+  b.style.display = late?'inline-block':'none'; b.textContent = late;
+  $('#navEquipe').style.display = as==='gestor'?'flex':'none';
+}
+function renderAs(){
+  $('#asSel').innerHTML = `<option value="gestor">Gestor (vê tudo)</option>` + DB.corretores.map(c=>`<option value="${c.id}" ${as===c.id?'selected':''}>${esc(c.nome)}</option>`).join('');
+  $('#asSel').value = as;
+}
+document.querySelectorAll('.nav').forEach(n=>n.onclick=()=>go(n.dataset.v));
+$('#mobnav').onclick = e => { const v=e.target.closest('button')?.dataset.v; if(!v) return;
+  if (v==='mais'){ modal(`<h3>Mais</h3><label class="l">Ver como<select class="sel" onchange="as=this.value;renderAs();closeModal();render()">${$('#asSel').innerHTML}</select></label>${as==='gestor'?`<button class="btn btn-ghost" onclick="closeModal();go('equipe')">Equipe</button>`:''}<button class="btn btn-ghost" onclick="resetAll()">Restaurar dados da demo</button><button class="btn btn-ghost" onclick="closeModal()">Fechar</button>`); setTimeout(()=>{const s=$('#modalBox select'); if(s) s.value=as;},0); return; }
+  go(v); };
+$('#asSel').onchange = e => { as=e.target.value; closeLead(); render(); toast(as==='gestor'?'Visão do gestor':'Visão de '+cor(as).nome); };
+function resetAll(){ DB=demoData(); save(); as='gestor'; renderAs(); closeModal(); closeLead(); render(); toast('Dados da demo restaurados'); }
+$('#resetDemo').onclick = resetAll;
+
+document.documentElement.style.setProperty('--brand',ORG.cor);
+$('#orgName').textContent = ORG.nome; $('#mark').textContent = ini(ORG.nome);
+renderAs(); render();
+</script>
+</body>
+</html>

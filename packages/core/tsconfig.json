@@ -1,0 +1,10 @@
+{
+  "extends": "@c1imob/config/tsconfig.node.json",
+  // Importações com extensão .ts: o bot roda este código direto no Node (type stripping), sem build.
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "noEmit": true
+  },
+  "include": ["src", "tests", "*.ts"]
+}

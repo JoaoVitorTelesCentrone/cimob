@@ -1,0 +1,38 @@
+{
+  "name": "c1imob",
+  "private": true,
+  "packageManager": "pnpm@12.18.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck && tsc -p e2e/tsconfig.json",
+    "test": "turbo run test",
+    "test:bdd": "turbo run test:bdd",
+    "test:e2e": "bddgen && playwright test --pass-with-no-tests",
+    "test:watch": "turbo run test:watch",
+    "format": "prettier --write .",
+    "db:start": "npx --yes supabase start -x studio,imgproxy,edge-runtime,logflare,vector,mailpit,postgres-meta,supavisor",
+    "db:stop": "npx --yes supabase stop",
+    "db:generate": "pnpm --filter @c1imob/db db:generate",
+    "db:migrate": "pnpm --filter @c1imob/db db:migrate",
+    "db:seed": "pnpm --filter @c1imob/db db:seed",
+    "db:seed:dev": "pnpm --filter @c1imob/db db:seed:dev"
+  },
+  "devDependencies": {
+    "@amiceli/vitest-cucumber": "^8.0.0",
+    "@c1imob/config": "workspace:*",
+    "@playwright/test": "^1.65.0",
+    "@supabase/supabase-js": "^2.119.0",
+    "@types/node": "^22.20.5",
+    "@vitest/coverage-v8": "^5.1.0",
+    "playwright-bdd": "^9.2.1",
+    "prettier": "^3.6.0",
+    "turbo": "^2.5.0",
+    "typescript": "^5.9.0",
+    "vitest": "^5.1.0"
+  }
+}

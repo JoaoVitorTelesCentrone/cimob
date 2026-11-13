@@ -1,0 +1,32 @@
+{
+  "name": "@c1imob/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema": "./src/schema.ts",
+    "./migrate": "./src/migrate.ts"
+  },
+  "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:bdd": "vitest run tests/steps",
+    "test:watch": "vitest",
+    "db:seed": "node --experimental-strip-types --no-warnings scripts/seed-demo.ts",
+    "db:seed:dev": "node --experimental-strip-types --no-warnings scripts/seed-dev-crm.ts"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.44.0",
+    "postgres": "^3.4.0"
+  },
+  "devDependencies": {
+    "@c1imob/config": "workspace:*",
+    "@types/node": "^22.0.0",
+    "drizzle-kit": "^0.31.0",
+    "eslint": "^9.30.0"
+  }
+}

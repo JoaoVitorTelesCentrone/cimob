@@ -1,0 +1,28 @@
+{
+  "name": "@c1imob/ai",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run --coverage",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@openrouter/ai-sdk-provider": "^3.1.0",
+    "ai": "^7.0.170",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@c1imob/config": "workspace:*",
+    "@types/node": "^22.20.5",
+    "eslint": "^9.39.5"
+  },
+  "files": [
+    "src"
+  ]
+}

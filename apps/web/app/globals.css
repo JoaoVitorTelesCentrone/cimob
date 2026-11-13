@@ -1,0 +1,20 @@
+@import "tailwindcss";
+@import "@c1imob/ui/tokens.css";
+
+:root {
+  --font-display: var(--font-bricolage), "Inter", system-ui, sans-serif;
+  --font-sans: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+body {
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Do anúncio à visita — demo integrada</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--brand:#155F4B;--ink:#14181f;--muted:#5b6472;--line:#e6e8ec;--bg:#f4f5f7;--wa:#075e54;--wa2:#25d366}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;height:100vh}
+button,input{font:inherit;color:inherit}
+header{background:#14181f;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+header .t{font-weight:800;font-size:15px;white-space:nowrap}
+header .t span{font-weight:500;opacity:.7;font-size:12.5px;margin-left:8px}
+.steps{display:flex;gap:6px;flex:1;flex-wrap:wrap}
+.step{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#e7e9ee;border-radius:999px;padding:7px 14px 7px 7px;cursor:pointer;font-weight:700;font-size:13px;position:relative}
+.step i{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.15);display:grid;place-items:center;font-style:normal;font-size:12px}
+.step.on{background:#fff;color:#14181f}
+.step.on i{background:var(--brand);color:#fff}
+.step .ping{position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;border-radius:999px;font-size:10.5px;padding:1px 6px;display:none}
+.reset{background:none;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:700;cursor:pointer}
+.hint{background:#fff;border-bottom:1px solid var(--line);padding:9px 16px;font-size:13px;color:var(--muted)}
+.hint b{color:var(--ink)}
+.stage{flex:1;min-height:0;position:relative}
+.pane{position:absolute;inset:0;visibility:hidden}
+.pane.on{visibility:visible}
+.pane iframe{width:100%;height:100%;border:0;display:block;background:#fff}
+#paneWa{overflow:auto;padding:20px}
+.wa-wrap{display:grid;grid-template-columns:380px 1fr;gap:20px;max-width:1100px;margin:0 auto;align-items:start}
+.phone{background:#111;border-radius:36px;padding:10px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.screen{background:#efeae2;border-radius:28px;overflow:hidden;display:flex;flex-direction:column;height:min(720px,calc(100vh - 170px));min-height:520px}
+.wa-hd{background:var(--wa);color:#fff;padding:14px 14px 12px;display:flex;align-items:center;gap:10px}
+.wa-hd .av{width:38px;height:38px;border-radius:50%;background:var(--brand);display:grid;place-items:center;font-weight:800;font-size:13px;border:2px solid rgba(255,255,255,.4)}
+.wa-hd b{display:block;font-size:15px}
+.wa-hd span{font-size:12px;opacity:.85}
+.msgs{flex:1;overflow:auto;padding:14px 10px;display:flex;flex-direction:column;gap:6px;background-image:radial-gradient(rgba(0,0,0,.035) 1px,transparent 1px);background-size:14px 14px}
+.b{max-width:82%;padding:8px 10px 6px;border-radius:10px;font-size:14px;line-height:1.4;box-shadow:0 1px 1px rgba(0,0,0,.08);white-space:pre-wrap;word-wrap:break-word}
+.b small{display:block;text-align:right;font-size:10.5px;color:#667781;margin-top:2px}
+.b.in{background:#fff;align-self:flex-start;border-top-left-radius:2px}
+.b.out{background:#d9fdd3;align-self:flex-end;border-top-right-radius:2px}
+.b.sys{align-self:center;background:#fff5c4;font-size:12px;color:#54656f;text-align:center;max-width:90%}
+.qr{display:flex;flex-wrap:wrap;gap:6px;align-self:flex-start;max-width:92%}
+.qr button{background:#fff;border:1px solid #cfe9dd;color:#008069;border-radius:18px;padding:7px 12px;font-weight:700;font-size:13px;cursor:pointer}
+.qr button:hover{background:#f0faf5}
+.typing{align-self:flex-start;background:#fff;border-radius:10px;padding:10px 12px;display:none;gap:4px}
+.typing span{width:6px;height:6px;border-radius:50%;background:#9aa5ab;animation:bl 1s infinite}
+.typing span:nth-child(2){animation-delay:.15s}.typing span:nth-child(3){animation-delay:.3s}
+@keyframes bl{0%,80%,100%{opacity:.3}40%{opacity:1}}
+.wa-in{display:flex;gap:8px;padding:8px;background:#f0f2f5}
+.wa-in input{flex:1;border:0;border-radius:20px;padding:10px 14px;background:#fff;outline:none}
+.wa-in button{width:42px;height:42px;border-radius:50%;border:0;background:#00a884;color:#fff;font-size:17px;cursor:pointer}
+.side{display:flex;flex-direction:column;gap:14px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px}
+.card h3{margin:0 0 4px;font-size:15px}
+.card p{margin:0 0 10px;color:var(--muted);font-size:13px}
+.log{font-size:12.5px;display:flex;flex-direction:column;gap:6px;max-height:360px;overflow:auto}
+.log div{display:grid;grid-template-columns:56px 1fr;gap:8px;align-items:start}
+.log time{color:var(--muted);font-variant-numeric:tabular-nums;font-size:11.5px;padding-top:1px}
+.log code{font-family:ui-monospace,Menlo,monospace;font-size:11px;background:#eef1f4;border-radius:4px;padding:1px 5px;margin-right:4px;color:#334}
+.empty{color:var(--muted);font-size:13px}
+.notif{border-left:4px solid var(--wa2);background:#f6fffa}
+.notif pre{margin:0;font-family:inherit;font-size:13px;white-space:pre-wrap;line-height:1.5}
+.btn{border:0;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer;background:var(--brand);color:#fff}
+.btn-ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+.start{display:flex;flex-direction:column;align-items:center;gap:10px;margin:auto;text-align:center;color:#54656f;font-size:13.5px;padding:20px}
+@media (max-width:900px){
+  .wa-wrap{grid-template-columns:1fr}
+  #paneWa{padding:10px}
+  .phone{border-radius:0;padding:0;box-shadow:none;background:none}
+  .screen{border-radius:14px;height:70vh}
+  header .t span{display:none}
+}
+/* Center One DS */
+body{background:#F6F4E9}
+header{background:#0B1F17}
+header .t{font-family:'Bricolage Grotesque',Inter,sans-serif;font-size:18px;letter-spacing:-.01em}
+header .t em{font-style:normal;color:#C8FF5A}
+.step.on{background:#C8FF5A;color:#0B1F17}
+.step.on i{background:#0B1F17;color:#C8FF5A}
+.hint{background:#fff;border-color:#E0DDD0}
+.card{border-color:#E0DDD0}
+.card h3{font-family:'Bricolage Grotesque',Inter,sans-serif}
+.btn{border-radius:999px}
+.reset{border-color:rgba(200,255,90,.45)}
+</style>
+</head>
+<body>
+<header>
+  <div class="t">Center One <em>Imob</em><span>do anúncio à visita · demo integrada · dados fictícios</span></div>
+  <div class="steps">
+    <button class="step on" data-p="site"><i>1</i>Site do corretor</button>
+    <button class="step" data-p="wa"><i>2</i>WhatsApp + bot<span class="ping" id="pingWa">1</span></button>
+    <button class="step" data-p="crm"><i>3</i>CRM<span class="ping" id="pingCrm">novo</span></button>
+  </div>
+  <button class="reset" id="reset">Recomeçar conversa</button>
+</header>
+<div class="hint" id="hint"></div>
+<div class="stage">
+  <div class="pane on" id="paneSite"><iframe id="fSite" src="site.html" title="Site do corretor"></iframe></div>
+  <div class="pane" id="paneWa">
+    <div class="wa-wrap">
+      <div class="phone"><div class="screen">
+        <div class="wa-hd"><div class="av">HI</div><div><b>Horizonte Imóveis</b><span>conta comercial · assistente virtual</span></div></div>
+        <div class="msgs" id="msgs"></div>
+        <div class="typing" id="typing"><span></span><span></span><span></span></div>
+        <form class="wa-in" id="form"><input id="inp" placeholder="Mensagem" autocomplete="off"><button aria-label="Enviar">➤</button></form>
+      </div></div>
+      <div class="side">
+        <div class="card"><h3>Por trás da conversa</h3><p>O que o n8n faz a cada mensagem: webhook, ficha do imóvel, extração, critério e CRM.</p><div class="log" id="log"><div class="empty">Nenhum evento ainda.</div></div></div>
+        <div class="card notif" id="notif" style="display:none"><h3>📲 WhatsApp da corretora</h3><p>Resumo enviado no handoff</p><pre id="notifTx"></pre></div>
+        <div class="card" id="toCrm" style="display:none"><h3>Lead no CRM</h3><p id="toCrmTx"></p><button class="btn" onclick="show('crm')">Abrir o CRM →</button></div>
+      </div>
+    </div>
+  </div>
+  <div class="pane" id="paneCrm"><iframe id="fCrm" src="crm.html" title="CRM"></iframe></div>
+</div>
+
+<script>
+const HINTS = {
+  site:'<b>Passo 1:</b> clique numa unidade do prédio (ou na lista) e toque em <b>“Quero essa”</b>. Isso simula o lead clicando no anúncio e abrindo o WhatsApp.',
+  wa:'<b>Passo 2:</b> envie a mensagem e responda o bot. Teste também uma pergunta livre (ex.: “aceita pet?”) ou peça “atendente”.',
+  crm:'<b>Passo 3:</b> o lead caiu no CRM, qualificado e atribuído pelo rodízio. Mude o status de uma unidade em <b>Imóveis</b> e veja o prédio no site mudar de cor.'
+};
+const fmt = n => n.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+const $ = s => document.querySelector(s);
+const now = () => new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+const esc = s => String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+function show(p){
+  document.querySelectorAll('.step').forEach(s=>s.classList.toggle('on',s.dataset.p===p));
+  $('#paneSite').classList.toggle('on',p==='site'); $('#paneWa').classList.toggle('on',p==='wa'); $('#paneCrm').classList.toggle('on',p==='crm');
+  $('#hint').innerHTML = HINTS[p];
+  $('#fSite').contentWindow.postMessage({type:'pause', on:p!=='site'},'*');
+  if (p==='wa') $('#pingWa').style.display='none';
+  if (p==='crm') $('#pingCrm').style.display='none';
+  if (p==='wa' && waitingFirst) setTimeout(()=>$('#inp').focus(),50);
+}
+document.querySelectorAll('.step').forEach(s=>s.onclick=()=>show(s.dataset.p));
+
+/* ===== Chat ===== */
+const TYP = document.getElementById('typing');
+let unit=null, ans={}, step=-1, waitingFirst=false, done=false, notas=[];
+const STEPS = [
+  {key:'objetivo', q:()=> unit ? `Vi que você se interessou pela unidade ${unit.num} do ${unit.empreendimento}: ${unit.area} m², ${unit.dorms}, ${fmt(unit.preco)}.\n\nÉ para morar ou para investir?` : 'Que bom que se interessou pelo Residencial Aurora! É para morar ou para investir?', opts:['Morar','Investir']},
+  {key:'faixa', q:()=>'Qual faixa de investimento você considera?', opts:['Até R$ 600 mil','R$ 600–800 mil','R$ 800 mil–1,2 mi','Acima de R$ 1,2 mi']},
+  {key:'prazo', q:()=>'E quando pretende comprar?', opts:['Imediato','Até 3 meses','3 a 6 meses','Mais de 6 meses']},
+  {key:'visita', q:()=>'Quer agendar uma visita ao decorado?', opts:['Sim','Ainda não']},
+  {key:'nome', q:()=>'Pra finalizar: como posso te chamar?', free:true}
+];
+const FMAX = {'Até R$ 600 mil':600000,'R$ 600–800 mil':800000,'R$ 800 mil–1,2 mi':1200000,'Acima de R$ 1,2 mi':Infinity};
+
+function bubble(txt,who){
+  $('#msgs').querySelectorAll('.qr').forEach(q=>q.remove());
+  const d=document.createElement('div'); d.className='b '+who; d.innerHTML=esc(txt)+(who!=='sys'?`<small>${now()}${who==='out'?' ✓✓':''}</small>`:'');
+  $('#msgs').appendChild(d); $('#msgs').scrollTop=1e9;
+}
+function quick(opts){
+  const q=document.createElement('div'); q.className='qr';
+  [...opts,'Atendente'].forEach(o=>{ const b=document.createElement('button'); b.type='button'; b.textContent=o; b.onclick=()=>userSays(o); q.appendChild(b); });
+  $('#msgs').appendChild(q); $('#msgs').scrollTop=1e9;
+}
+function bot(txt,opts,delay=700){
+  return new Promise(r=>{ const t=TYP; $('#msgs').appendChild(t); t.style.display='flex'; $('#msgs').scrollTop=1e9;
+    setTimeout(()=>{ t.style.display='none'; bubble(txt,'in'); if(opts) quick(opts); r(); }, delay); });
+}
+function log(tag,txt){
+  const l=$('#log'); if(l.querySelector('.empty')) l.innerHTML='';
+  const d=document.createElement('div'); d.innerHTML=`<time>${new Date().toLocaleTimeString('pt-BR')}</time><span><code>${tag}</code>${esc(txt)}</span>`; l.appendChild(d); l.scrollTop=1e9;
+}
+
+function startChat(u,msg){
+  resetChat(); unit=u; waitingFirst=true;
+  $('#inp').value = msg;
+  bubble('Mensagens com empresas podem ser automatizadas. Toque em enviar para começar.','sys');
+  show('wa'); $('#pingWa').style.display='none';
+}
+async function userSays(t){
+  t=t.trim(); if(!t||done) return;
+  bubble(t,'out'); $('#inp').value='';
+  if (waitingFirst){
+    waitingFirst=false;
+    log('webhook','Mensagem recebida pela Cloud API');
+    if (unit){ log('referral',`Anúncio ALFA_AUR${unit.num}_PRECO_916 · código ${unit.cod}`); log('ficha',`Ficha ${unit.cod} carregada (preço, área, status: ${({disp:'disponível',res:'reservado',vend:'vendido'})[unit.status]})`); }
+    log('estado','novo → em_qualificacao');
+    await bot('Olá! 👋 Sou o assistente virtual da Horizonte Imóveis. Vou te fazer 4 perguntas rápidas e já passo para a corretora.\n\nSeus dados são usados só para este atendimento. Se preferir falar com uma pessoa, toque em “Atendente”.',null,800);
+    if (unit && unit.status==='vend'){ await bot('Essa unidade já foi vendida 😕, mas temos outras parecidas disponíveis. Vou seguir com as perguntas para a corretora te indicar as melhores.',null,700); log('regra','Unidade vendida: bot não afirma disponibilidade'); }
+    step=0; return bot(STEPS[0].q(),STEPS[0].opts);
+  }
+  if (/^(atendente|humano|pessoa|corretor[a]?)$/i.test(t) || /falar com (um|uma|o|a)? ?(atendente|pessoa|humano|corretor)/i.test(t)){
+    log('handoff','Lead pediu humano → IA pausada'); ans.handoff=true;
+    if (!ans.nome){ step=STEPS.length-1; return bot('Claro! Já vou te passar para a corretora. Como posso te chamar?'); }
+    return finish();
+  }
+  const s=STEPS[step]; if(!s) return;
+  if (s.free){ ans.nome=t.split(' ').slice(0,3).map(w=>w[0].toUpperCase()+w.slice(1)).join(' '); log('extração',`nome = "${ans.nome}"`); return finish(); }
+  const match = s.opts.find(o=>o.toLowerCase()===t.toLowerCase());
+  if (!match){
+    if (/pre[cç]o|valor|quanto/i.test(t) && unit){ log('faq',`Pergunta de preço → resposta da ficha ${unit.cod}`); await bot(`O valor de tabela da unidade ${unit.num} é ${fmt(unit.preco)}. Condições e negociação ficam com a corretora 😉`); }
+    else { notas.push(t); log('faq','Campo ausente na ficha → anotado para a corretora'); await bot('Essa informação eu não tenho confirmada aqui, então anotei para a corretora te responder certinho 👍'); }
+    return bot(s.q(),s.opts,600);
+  }
+  ans[s.key]=match; log('extração',`${s.key} = "${match}"`);
+  step++;
+  return bot(STEPS[step].q(),STEPS[step].opts);
+}
+function finish(){
+  done=true;
+  const okPrazo = ans.prazo!=='Mais de 6 meses';
+  const okFaixa = !ans.faixa || !unit || FMAX[ans.faixa] >= unit.preco*0.9;
+  const qualificado = !!ans.handoff || (okPrazo && okFaixa);
+  const motivo = !okPrazo ? 'prazo acima de 6 meses' : !okFaixa ? 'faixa abaixo do preço' : '';
+  log('critério', qualificado ? 'Qualificado ✓' : `Não qualificado: ${motivo}`);
+  $('#fCrm').contentWindow.postMessage({type:'newLead', unit, lead:{nome:ans.nome||'Lead sem nome', tel:'5511987654321', faixa:ans.faixa, prazo:ans.prazo, visita:ans.visita, objetivo:ans.objetivo, qualificado, motivo, handoff:!!ans.handoff, notas}}, '*');
+}
+window.addEventListener('message', async e => {
+  const d=e.data||{};
+  if (d.type==='wa') startChat(d.unit,d.msg);
+  if (d.type==='unitStatus'){ $('#fSite').contentWindow.postMessage(d,'*'); }
+  if (d.type==='leadCreated'){
+    log('crm',`Lead ${d.id} criado · etapa ${d.stage}${d.corretor?' · atribuído a '+d.corretor+' (rodízio)':''}`);
+    const first = ans.nome ? ans.nome.split(' ')[0] : '';
+    if (d.corretor){
+      log('handoff',`Resumo enviado para ${d.corretor} · IA pausada nesta conversa`);
+      await bot(`Perfeito${first?', '+first:''}! A ${d.corretor} já recebeu seus dados e vai te chamar aqui em instantes. 🙌`);
+      $('#notifTx').textContent = `Novo lead qualificado: ${unit?unit.cod:'Residencial Aurora'}\n${ans.nome||'Sem nome'} · ${ans.objetivo||'—'} · ${ans.faixa||'faixa não informada'} · ${ans.prazo||'prazo não informado'} · visita: ${ans.visita||'—'}${ans.handoff?'\n⚠️ Pediu atendente':''}${notas.length?'\n❓ Perguntou: '+notas.join(' / '):''}\nOrigem: anúncio ${unit?'ALFA_AUR'+unit.num+'_PRECO_916':'institucional'}\nResponder em até 15 min`;
+      $('#notif').style.display='block';
+    } else {
+      await bot(`Obrigado${first?', '+first:''}! Vou te mandar novidades do empreendimento e, quando quiser avançar, é só chamar aqui. 😉`);
+      log('nutrição','Lead fora do critério: fica no CRM como “Novo”, sem acionar corretor');
+    }
+    $('#toCrmTx').textContent = `${ans.nome||'O lead'} entrou como “${d.stage}”${d.corretor?' com '+d.corretor:''}. O card aparece destacado no funil.`;
+    $('#toCrm').style.display='block'; $('#pingCrm').style.display='block';
+  }
+});
+$('#form').onsubmit = e => { e.preventDefault(); userSays($('#inp').value); };
+
+function resetChat(){
+  unit=null; ans={}; step=-1; waitingFirst=false; done=false; notas=[];
+  $('#msgs').innerHTML=''; $('#msgs').appendChild(TYP); TYP.style.display='none';
+  $('#log').innerHTML='<div class="empty">Nenhum evento ainda.</div>';
+  $('#notif').style.display='none'; $('#toCrm').style.display='none';
+}
+function emptyState(){
+  const s=document.createElement('div'); s.className='start';
+  s.innerHTML='Nenhuma conversa ainda.<br>Volte ao site, escolha uma unidade e toque em “Quero essa”.<br><button class="btn" type="button" id="quick">Ou começar com a unidade 502</button>';
+  $('#msgs').appendChild(s);
+  s.querySelector('#quick').onclick=()=>startChat({cod:'AUR-502',num:502,titulo:'Residencial Aurora · unid. 502',bairro:'Vila Mariana',area:82,quartos:3,dorms:'3 dorms (1 suíte)',preco:765000,status:'disp',empreendimento:'Residencial Aurora'},'Olá, Marina! Vi a unidade 502 do Residencial Aurora no site e quero saber mais. Código: AUR-502');
+}
+$('#reset').onclick = () => { resetChat(); emptyState(); show('site'); };
+resetChat(); emptyState(); show('site');
+</script>
+</body>
+</html>

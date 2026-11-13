@@ -1,0 +1,8 @@
+# HTTPS automático (Let's Encrypt) para o domínio do bot. A Meta só entrega webhook em HTTPS.
+{$BOT_DOMAIN} {
+	# Payloads da Cloud API têm poucos KB; o bot ainda corta em 1 MB.
+	request_body {
+		max_size 2MB
+	}
+	reverse_proxy bot:8787
+}

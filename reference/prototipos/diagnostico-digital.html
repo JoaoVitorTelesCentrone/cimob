@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diagnóstico Digital — Center One</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--forest:#0B1F17;--green:#155F4B;--lime:#C8FF5A;--cream:#F6F4E9;--ink:#0B1F17;--muted:#4D5A52;--line:#E0DDD0;--raised:#fff;--bad:#DC2626;--badsoft:#FEE2E2;--warn:#B45309;--warnsoft:#FEF3C7;--ok:#15803D;--oksoft:#DCFCE7}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--cream);color:var(--ink);font-size:15px;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.disp{font-family:'Bricolage Grotesque',Inter,sans-serif}
+header{background:var(--forest);color:var(--cream);padding:18px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+header .t{font-family:'Bricolage Grotesque',Inter,sans-serif;font-weight:800;font-size:20px}
+header .t em{font-style:normal;color:var(--lime)}
+header .s{font-size:12.5px;color:#A9B5AD}
+.wrap{max-width:1180px;margin:0 auto;padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.card{background:var(--raised);border:1px solid var(--line);border-radius:16px;padding:18px}
+.card h2{margin:0 0 4px;font-size:20px}
+.card p.hint{margin:0 0 14px;color:var(--muted);font-size:13px}
+label.f{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px}
+input[type=text]{font:inherit;font-size:15px;color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.q{border-top:1px solid #EFEDE4;padding:14px 0}
+.q:first-of-type{border-top:0}
+.q .qt{font-weight:700;font-size:14.5px;margin-bottom:4px}
+.q .how{font-size:12px;color:var(--muted);margin-bottom:8px}
+.q .how a{color:var(--green)}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opts button{font:inherit;font-size:13px;font-weight:600;border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 12px;cursor:pointer;color:var(--ink)}
+.opts button.on.b0{background:var(--badsoft);border-color:#F3B4B4;color:#991B1B}
+.opts button.on.b1{background:var(--warnsoft);border-color:#F2D58C;color:var(--warn)}
+.opts button.on.b2{background:var(--oksoft);border-color:#A7E3BA;color:var(--ok)}
+.report{position:sticky;top:16px}
+.rep{background:var(--forest);color:var(--cream);border-radius:16px;padding:22px;position:relative;overflow:hidden}
+.rep .ov{font-size:11.5px;font-weight:700;letter-spacing:3px;color:var(--lime)}
+.rep h3{margin:6px 0 2px;font-size:28px;font-weight:800;line-height:1.05}
+.rep .sub{color:#A9B5AD;font-size:13px}
+.score{display:flex;align-items:flex-end;gap:10px;margin:16px 0 6px}
+.score b{font-family:'Bricolage Grotesque',Inter,sans-serif;font-size:64px;line-height:.9;color:var(--lime)}
+.score span{color:#A9B5AD;font-size:14px;padding-bottom:8px}
+.bar{height:8px;background:#22392F;border-radius:999px;overflow:hidden;margin-bottom:6px}
+.bar i{display:block;height:100%;background:var(--lime);border-radius:999px;transition:width .3s}
+.lvl{font-size:13px;color:var(--cream);margin-bottom:14px}
+.pains{display:flex;flex-direction:column;gap:10px}
+.pain{background:#12291F;border-radius:12px;padding:12px 14px}
+.pain .pt{font-weight:700;font-size:14px;display:flex;gap:8px;align-items:center}
+.pain .pt .tag{font-size:10.5px;font-weight:800;letter-spacing:1px;padding:2px 7px;border-radius:999px;background:var(--lime);color:var(--forest)}
+.pain .pt .tag.m{background:#F2D58C}
+.pain p{margin:6px 0 0;font-size:13px;color:#C9D3CC;line-height:1.45}
+.pain p b{color:var(--cream)}
+.ok{font-size:13px;color:#A9B5AD;margin-top:10px}
+.foot{display:flex;justify-content:space-between;margin-top:16px;font-size:11.5px;color:#A9B5AD}
+.arcs{position:absolute;right:-60px;top:-60px;width:220px;height:220px;pointer-events:none;opacity:.5}
+.msg{margin-top:16px}
+.msg textarea{width:100%;min-height:150px;font:inherit;font-size:14px;line-height:1.5;border:1px solid var(--line);border-radius:12px;padding:12px;resize:vertical;color:var(--ink)}
+.tabs{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.tabs button{font:inherit;font-size:12.5px;font-weight:700;border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;cursor:pointer}
+.tabs button.on{background:var(--forest);color:var(--cream);border-color:var(--forest)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btn{font:inherit;font-weight:700;font-size:14px;border:0;border-radius:999px;padding:11px 16px;cursor:pointer}
+.btn-lime{background:var(--lime);color:var(--forest)}
+.btn-green{background:var(--green);color:#fff}
+.btn-ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+.saved{margin-top:16px}
+.saved table{width:100%;border-collapse:collapse;font-size:13px}
+.saved td,.saved th{padding:8px 6px;border-top:1px solid #EFEDE4;text-align:left}
+.saved th{color:var(--muted);font-size:11.5px;border-top:0}
+.saved td.n{text-align:right;font-weight:800;font-family:'Bricolage Grotesque',Inter,sans-serif}
+.saved button{font:inherit;font-size:12px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 10px;cursor:pointer}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--forest);color:var(--cream);padding:10px 16px;border-radius:999px;font-weight:600;font-size:13px;display:none;z-index:9}
+.note{font-size:11.5px;color:var(--muted);margin-top:8px}
+@media (max-width:900px){.wrap{grid-template-columns:1fr;padding:12px}.report{position:static}.row2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div><div class="t">Center One <em>·</em> Diagnóstico Digital</div><div class="s">Encontre a dor antes de abordar. Uma imobiliária por vez.</div></div>
+  <button class="btn btn-lime" id="novo">+ Nova imobiliária</button>
+</header>
+
+<div class="wrap">
+  <section class="card" id="form">
+    <h2>1. Levantamento</h2>
+    <p class="hint">Uns 10 minutos por imobiliária. Marque o que encontrou; o relatório e a mensagem se montam sozinhos.</p>
+    <div class="row2">
+      <label class="f">Imobiliária<input type="text" id="nome" placeholder="Ex.: Horizonte Imóveis"></label>
+      <label class="f">Dono / gestor<input type="text" id="dono" placeholder="Ex.: Carlos"></label>
+    </div>
+    <div class="row2">
+      <label class="f">Bairro / cidade<input type="text" id="bairro" placeholder="Ex.: Vila Mariana"></label>
+      <label class="f">Imóvel usado no teste<input type="text" id="imovel" placeholder="Ex.: apto 3 dorms na Saúde"></label>
+    </div>
+    <div id="qs"></div>
+  </section>
+
+  <section class="report">
+    <div class="rep" id="rep">
+      <svg class="arcs" viewBox="0 0 220 220" aria-hidden="true"><g fill="none" stroke="#C8FF5A" stroke-width="2"><path d="M220 60A160 160 0 0 0 60 220"/><path d="M220 100A120 120 0 0 0 100 220"/><path d="M220 140A80 80 0 0 0 140 220"/></g></svg>
+      <div class="ov">DIAGNÓSTICO DIGITAL</div>
+      <h3 id="rNome">Sua imobiliária</h3>
+      <div class="sub" id="rSub">Presença online e atendimento ao lead</div>
+      <div class="score"><b id="rScore">–</b><span>de 100</span></div>
+      <div class="bar"><i id="rBar" style="width:0%"></i></div>
+      <div class="lvl" id="rLvl">Marque os itens ao lado.</div>
+      <div class="pains" id="rPains"></div>
+      <div class="ok" id="rOk"></div>
+      <div class="foot"><span>Center One · Parceira de crescimento digital</span><span id="rDate"></span></div>
+    </div>
+
+    <div class="card msg">
+      <h2>2. Mensagem de abordagem</h2>
+      <div class="tabs" id="tabs">
+        <button data-k="dm" class="on">DM Instagram / LinkedIn</button>
+        <button data-k="lig">Roteiro de ligação</button>
+        <button data-k="vis">Visita presencial</button>
+      </div>
+      <textarea id="msg" aria-label="Mensagem gerada"></textarea>
+      <div class="actions">
+        <button class="btn btn-green" id="copyMsg">Copiar mensagem</button>
+        <button class="btn btn-ghost" id="copyRep">Copiar relatório em texto</button>
+        <button class="btn btn-ghost" id="salvar">Salvar na lista</button>
+      </div>
+      <p class="note">Dica: tire um print do relatório verde e mande junto com a mensagem, ou leve impresso na visita.</p>
+    </div>
+
+    <div class="card saved">
+      <h2>3. Lista de prospecção</h2>
+      <p class="hint" id="savedHint">Fica salva só neste navegador.</p>
+      <table><thead><tr><th>Imobiliária</th><th>Dor nº 1</th><th style="text-align:right">Score</th><th></th></tr></thead><tbody id="list"></tbody></table>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* opção: [rótulo, pontos (0..1), nível de dor 0=crítica 1=média 2=ok] */
+const Q = [
+ {id:'site', w:14, t:'Tem site próprio?', how:'Pesquise o nome no Google e abra no celular.',
+  o:[['Não tem',0,0],['Tem, mas ruim no celular ou desatualizado',0.4,1],['Tem e funciona bem',1,2]],
+  pain:{0:['Sem site próprio','Quem pesquisa a imobiliária no Google cai em portal ou em concorrente. Os imóveis de vocês competem lado a lado com os de todo mundo.'],
+        1:['Site fraco no celular','A maioria das buscas por imóvel é feita no celular. Site lento ou quebrado faz o interessado voltar para o portal.']}},
+ {id:'ads', w:14, t:'Anuncia na Meta (Instagram/Facebook)?', how:'Veja na <a href="https://www.facebook.com/ads/library/" target="_blank" rel="noopener">Biblioteca de Anúncios da Meta</a> pelo nome da página.',
+  o:[['Nenhum anúncio ativo',0,0],['Poucos ou parados',0.5,1],['Anúncios ativos e frequentes',1,2]],
+  pain:{0:['Nenhum anúncio ativo','Hoje, quem procura imóvel na região vê anúncio de outras imobiliárias, não o de vocês.'],
+        1:['Anúncios esporádicos','Campanha liga e desliga não aprende quem é o comprador e sai mais cara por contato.']}},
+ {id:'criativo', w:10, t:'Como são os criativos dos anúncios/posts?', how:'Olhe os 5 últimos anúncios ou posts.',
+  o:[['Foto parada / arte genérica',0,0],['Mistura, pouco vídeo',0.5,1],['Vídeos curtos dos imóveis',1,2]],
+  pain:{0:['Criativos genéricos','Foto parada com texto padrão fica igual à de qualquer concorrente e chama menos atenção no feed.'],
+        1:['Pouco vídeo','Vídeo curto do imóvel é o formato que mais segura a atenção no Instagram hoje.']}},
+ {id:'insta', w:8, t:'Instagram ativo?', how:'Data do último post e frequência.',
+  o:[['Último post há mais de 30 dias',0,0],['Posta de vez em quando',0.5,1],['Posta toda semana',1,2]],
+  pain:{0:['Instagram parado','Perfil parado passa a impressão de empresa parada para quem chega pelo anúncio ou por indicação.'],
+        1:['Instagram irregular','Sem constância, o perfil não vira vitrine dos imóveis.']}},
+ {id:'google', w:8, t:'Perfil no Google (Maps)?', how:'Busque no Google Maps: nota e número de avaliações.',
+  o:[['Não tem perfil',0,0],['Nota abaixo de 4,5 ou poucas avaliações',0.5,1],['Nota boa e muitas avaliações',1,2]],
+  pain:{0:['Sem perfil no Google','Quem busca "imobiliária perto de mim" não encontra vocês no mapa.'],
+        1:['Poucas avaliações no Google','Nota e avaliações pesam na decisão de chamar; hoje elas não ajudam vocês.']}},
+ {id:'resposta', w:18, t:'Tempo até a 1ª resposta humana (teste como comprador)', how:'Mande mensagem como interessado num imóvel deles e cronometre.',
+  o:[['Mais de 2 h ou não respondeu',0,0],['Entre 15 min e 2 h',0.5,1],['Menos de 15 min',1,2]],
+  pain:{0:['Demora no atendimento','No meu teste como comprador, a resposta de uma pessoa demorou mais de 2 horas. Nesse tempo o interessado já falou com outras imobiliárias.'],
+        1:['Atendimento sem pressa','A resposta veio, mas depois de 15 minutos. Lead de anúncio esfria rápido.']}},
+ {id:'qualifica', w:12, t:'O atendimento perguntou faixa, prazo e interesse em visita?', how:'No mesmo teste: perguntaram o que importa?',
+  o:[['Não perguntou nada',0,0],['Perguntou parte',0.5,1],['Qualificou bem',1,2]],
+  pain:{0:['Lead sem qualificação','Ninguém perguntou faixa de valor, prazo ou interesse em visita. O corretor perde tempo com curioso e demora com quem quer comprar.'],
+        1:['Qualificação incompleta','Faltaram perguntas básicas (faixa, prazo ou visita) para priorizar o atendimento.']}},
+ {id:'bot', w:10, t:'Tem bot/assistente no WhatsApp?', how:'O que aconteceu no teste?',
+  o:[['Bot genérico que não passa para humano',0,0],['Não tem bot (só humano)',0.5,1],['Bot que qualifica e passa ao corretor',1,2]],
+  pain:{0:['Bot que trava o cliente','O bot respondeu, mas não levou a conversa a lugar nenhum nem passou para um corretor. O interessado fica preso no menu.'],
+        1:['Sem atendimento fora do horário','Sem assistente, quem chama à noite ou no fim de semana espera até alguém ver.']}},
+ {id:'link', w:6, t:'Anúncio/site abre o WhatsApp com o imóvel identificado?', how:'Clique no botão do anúncio ou do site.',
+  o:[['Não tem botão de WhatsApp',0,0],['Abre sem dizer qual imóvel',0.5,1],['Abre já com o código do imóvel',1,2]],
+  pain:{0:['Sem caminho direto para o WhatsApp','O interessado precisa procurar como falar com vocês. Cada clique a mais perde gente.'],
+        1:['Conversa começa sem contexto','O corretor não sabe qual imóvel trouxe o lead e precisa perguntar de novo.']}}
+];
+const STATE = {ans:{}, tab:'dm'};
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function renderQs(){
+  $('#qs').innerHTML = Q.map(q=>`<div class="q"><div class="qt">${q.t}</div><div class="how">${q.how}</div><div class="opts" data-q="${q.id}">${q.o.map((o,i)=>`<button type="button" data-i="${i}" class="b${o[2]} ${STATE.ans[q.id]===i?'on':''}">${o[0]}</button>`).join('')}</div></div>`).join('');
+}
+$('#qs').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  const id=b.parentElement.dataset.q, i=+b.dataset.i;
+  STATE.ans[id] = STATE.ans[id]===i ? undefined : i;
+  renderQs(); update();
+});
+['nome','dono','bairro','imovel'].forEach(k=>$('#'+k).addEventListener('input',update));
+
+function compute(){
+  let got=0, tot=0; const pains=[];
+  Q.forEach(q=>{ const i=STATE.ans[q.id]; if(i===undefined) return; tot+=q.w; const o=q.o[i]; got+=q.w*o[1];
+    if(o[2]<2 && q.pain[o[2]]) pains.push({sev:o[2], w:q.w, t:q.pain[o[2]][0], d:q.pain[o[2]][1]}); });
+  pains.sort((a,b)=>a.sev-b.sev || b.w-a.w);
+  const score = tot? Math.round(got/tot*100) : null;
+  return {score, pains, answered:Object.values(STATE.ans).filter(v=>v!==undefined).length};
+}
+function level(s){
+  if(s===null) return 'Marque os itens ao lado.';
+  if(s<40) return 'Muitas oportunidades de cliente escapando hoje.';
+  if(s<70) return 'Base existe, mas há buracos claros no caminho do lead.';
+  return 'Boa presença. Os ganhos estão nos detalhes do atendimento.';
+}
+function update(){
+  const n=$('#nome').value.trim()||'Sua imobiliária', b=$('#bairro').value.trim();
+  const {score,pains,answered}=compute();
+  $('#rNome').textContent=n;
+  $('#rSub').textContent = (b?b+' · ':'')+'Presença online e atendimento ao lead';
+  $('#rScore').textContent = score===null?'–':score;
+  $('#rBar').style.width=(score||0)+'%';
+  $('#rLvl').textContent=level(score) + (answered && answered<Q.length ? ` (${answered} de ${Q.length} itens avaliados)`:'');
+  const top=pains.slice(0,3);
+  $('#rPains').innerHTML = top.map(p=>`<div class="pain"><div class="pt"><span class="tag ${p.sev?'m':''}">${p.sev?'ATENÇÃO':'CRÍTICO'}</span>${esc(p.t)}</div><p>${esc(p.d)}</p></div>`).join('');
+  $('#rOk').textContent = pains.length>3 ? `+ ${pains.length-3} outro${pains.length-3>1?'s':''} ponto${pains.length-3>1?'s':''} para conversar.` : (answered && !pains.length ? 'Nenhum ponto crítico encontrado.' : '');
+  $('#rDate').textContent = new Date().toLocaleDateString('pt-BR');
+  $('#msg').value = message(top);
+}
+function message(top){
+  const n=$('#nome').value.trim()||'[imobiliária]', d=$('#dono').value.trim()||'[nome]', im=$('#imovel').value.trim();
+  const p1=top[0]?top[0].t.toLowerCase():'[dor 1]', p2=top[1]?top[1].t.toLowerCase():null;
+  const dores = p2 ? `${p1} e ${p2}` : p1;
+  if(STATE.tab==='dm') return `Oi, ${d}! Tudo bem? Sou o JV, da Center One.
+
+Fiz um diagnóstico rápido da presença digital da ${n}${im?` e testei o atendimento como interessado em um ${im}`:''}. Encontrei dois pontos que podem estar fazendo vocês perderem clientes: ${dores}.
+
+Montei isso num relatório de 1 página, com o que vi e o que dá para fazer. Posso te mandar? É grátis e sem compromisso.`;
+  if(STATE.tab==='lig') return `ROTEIRO DE LIGAÇÃO (até 2 min)
+
+1. "Oi, falo com o ${d}? Aqui é o JV, da Center One. Prometo ser rápido."
+2. "Fiz um diagnóstico da presença digital da ${n}${im?` e me passei por comprador de um ${im}`:''}."
+3. "O principal que encontrei: ${p1}.${top[0]?' '+top[0].d:''}"
+${p2?`4. "E também: ${p2}."\n`:''}5. "Montei um relatório de 1 página. Posso te mandar no WhatsApp ou passar aí 10 minutos para mostrar?"
+→ Se sim: combine dia e hora. Se não: "Posso te mandar só o relatório? Sem compromisso."`;
+  return `VISITA PRESENCIAL (terça ou quarta de manhã)
+
+Leve o relatório impresso.
+
+"Oi, sou o JV, da Center One. Procuro o ${d}. Fiz um diagnóstico gratuito da ${n} e queria entregar em mãos, leva 10 minutos."
+
+Na conversa:
+• Comece pelo teste: ${p1}.
+• Pergunte: "Isso bate com o que você sente no dia a dia?"
+• Só depois mostre a demo (site 3D + bot + CRM) com um imóvel deles.
+• Feche pedindo o próximo passo: demonstração completa ou piloto.`;
+}
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('button'); if(!b) return; STATE.tab=b.dataset.k; document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b)); update();});
+
+function toast(t){const el=$('#toast'); el.textContent=t; el.style.display='block'; clearTimeout(toast.h); toast.h=setTimeout(()=>el.style.display='none',1800);}
+async function copy(txt,ok){ try{ await navigator.clipboard.writeText(txt); toast(ok);}catch(e){ $('#msg').focus(); $('#msg').select(); toast('Selecione e copie manualmente'); } }
+$('#copyMsg').onclick=()=>copy($('#msg').value,'Mensagem copiada');
+$('#copyRep').onclick=()=>{
+  const {score,pains}=compute(); const n=$('#nome').value.trim()||'Imobiliária';
+  const txt=`DIAGNÓSTICO DIGITAL · ${n}\nScore: ${score??'–'}/100. ${level(score)}\n\n`+pains.slice(0,3).map((p,i)=>`${i+1}. ${p.t}\n${p.d}`).join('\n\n')+`\n\nCenter One · Parceira de crescimento digital`;
+  copy(txt,'Relatório copiado');
+};
+
+/* lista (localStorage, só neste navegador) */
+const KEY='c1-diag-v1';
+const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return []}};
+const store=a=>{try{localStorage.setItem(KEY,JSON.stringify(a)); return true}catch(e){return false}};
+let LIST=load();
+function renderList(){
+  $('#list').innerHTML = LIST.length ? LIST.map((x,i)=>`<tr><td><b>${esc(x.nome)}</b><div style="font-size:11.5px;color:var(--muted)">${esc(x.bairro||'')}</div></td><td>${esc(x.p1||'—')}</td><td class="n">${x.score??'–'}</td><td><button data-o="${i}">Abrir</button> <button data-d="${i}">×</button></td></tr>`).join('') : '<tr><td colspan="4" style="color:var(--muted)">Nenhuma salva ainda.</td></tr>';
+}
+$('#salvar').onclick=()=>{
+  const nome=$('#nome').value.trim(); if(!nome){ $('#nome').focus(); toast('Coloque o nome da imobiliária'); return; }
+  const {score,pains}=compute();
+  const rec={nome,dono:$('#dono').value.trim(),bairro:$('#bairro').value.trim(),imovel:$('#imovel').value.trim(),ans:{...STATE.ans},score,p1:pains[0]?.t,at:Date.now()};
+  const i=LIST.findIndex(x=>x.nome.toLowerCase()===nome.toLowerCase());
+  if(i>=0) LIST[i]=rec; else LIST.push(rec);
+  LIST.sort((a,b)=>(a.score??101)-(b.score??101));
+  toast(store(LIST)?'Salvo na lista':'Não deu para salvar neste navegador'); renderList();
+};
+$('#list').addEventListener('click',e=>{
+  const o=e.target.dataset.o, d=e.target.dataset.d;
+  if(o!==undefined){ const x=LIST[+o]; ['nome','dono','bairro','imovel'].forEach(k=>$('#'+k).value=x[k]||''); STATE.ans={...x.ans}; renderQs(); update(); window.scrollTo({top:0,behavior:'smooth'}); }
+  if(d!==undefined){ LIST.splice(+d,1); store(LIST); renderList(); }
+});
+$('#novo').onclick=()=>{ ['nome','dono','bairro','imovel'].forEach(k=>$('#'+k).value=''); STATE.ans={}; renderQs(); update(); window.scrollTo({top:0,behavior:'smooth'}); $('#nome').focus(); };
+
+renderQs(); update(); renderList();
+</script>
+</body>
+</html>

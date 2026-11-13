@@ -1,0 +1,6 @@
+{
+  "extends": "@c1imob/config/tsconfig.react.json",
+  // ES2024: Map.groupBy (o app web, que importa este pacote, já usa).
+  "compilerOptions": { "lib": ["ES2024", "DOM", "DOM.Iterable"] },
+  "include": ["src", "tests", "*.ts"]
+}

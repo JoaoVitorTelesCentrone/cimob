@@ -1,0 +1,38 @@
+{
+  "name": "@c1imob/three",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./controls": "./src/controls.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run --coverage",
+    "test:bdd": "vitest run tests/steps",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@c1imob/ui": "workspace:*",
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.2",
+    "suncalc": "1.9.0",
+    "three": "^0.187.0"
+  },
+  "devDependencies": {
+    "@c1imob/config": "workspace:*",
+    "@react-three/test-renderer": "^9.1.1",
+    "@types/react": "^19.3.0",
+    "@types/suncalc": "^1.9.2",
+    "@types/three": "^0.187.0",
+    "eslint": "^9.39.5",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "peerDependencies": {
+    "react": "^19",
+    "react-dom": "^19"
+  }
+}

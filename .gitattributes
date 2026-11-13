@@ -1,0 +1,6 @@
+# Fim de linha LF no repositório e no checkout: Dockerfile e scripts rodam no Linux (Hetzner).
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.glb binary
+*.woff2 binary

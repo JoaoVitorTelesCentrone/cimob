@@ -1,0 +1,1 @@
+ALTER TABLE "conversations" ADD COLUMN "flow_data" jsonb DEFAULT '{}'::jsonb NOT NULL;

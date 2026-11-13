@@ -1,0 +1,181 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1794533883954,
+      "tag": "0000_tidy_thundra",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794534360472,
+      "tag": "0001_rls_organizations_memberships",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794536176717,
+      "tag": "0002_resolve_tenant",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794536538465,
+      "tag": "0003_watery_preak",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794536728973,
+      "tag": "0004_rls_estoque_leads",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794537022337,
+      "tag": "0005_lowly_arachne",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794537321225,
+      "tag": "0006_estagio_eventos",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794571487021,
+      "tag": "0007_rodizio_cursor",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794571489011,
+      "tag": "0008_rodizio",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794572976543,
+      "tag": "0009_realtime",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794576892637,
+      "tag": "0010_bot_tabelas",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1794576911993,
+      "tag": "0011_rls_bot",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794578561592,
+      "tag": "0012_conversa_flow_data",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1794579643415,
+      "tag": "0013_envio",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1794579656608,
+      "tag": "0014_envio_regras",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1794586461236,
+      "tag": "0015_corretor_whatsapp",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1794586462387,
+      "tag": "0016_corretor_whatsapp_regras",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1794601499965,
+      "tag": "0017_whole_invisible_woman",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1794601620886,
+      "tag": "0018_gasto_meta_rls",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1794603557334,
+      "tag": "0019_nostalgic_chronomancer",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794603559217,
+      "tag": "0020_lgpd_dados_do_lead",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1794603662875,
+      "tag": "0021_funcoes_sem_anonimo",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1794604582296,
+      "tag": "0022_cheerful_scourge",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1794604586527,
+      "tag": "0023_onboarding",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1794604736251,
+      "tag": "0024_gestor_renomeia",
+      "breakpoints": true
+    }
+  ]
+}

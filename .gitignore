@@ -1,0 +1,15 @@
+node_modules/
+.next/
+dist/
+.turbo/
+coverage/
+.env
+.env.*
+!.env.example
+playwright-report/
+test-results/
+.features-gen/
+__pycache__/
+.venv/
+supabase/.temp/
+supabase/.branches/

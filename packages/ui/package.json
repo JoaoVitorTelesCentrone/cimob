@@ -1,0 +1,23 @@
+{
+  "name": "@c1imob/ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./tokens.css": "./src/tokens.css"
+  },
+  "scripts": {
+    "tokens": "node scripts/build-tokens.mjs",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run --coverage",
+    "test:bdd": "vitest run tests/steps",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@c1imob/config": "workspace:*",
+    "@types/node": "^22.0.0",
+    "eslint": "^9.30.0"
+  }
+}

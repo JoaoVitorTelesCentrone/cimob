@@ -1,0 +1,38 @@
+{
+  "name": "@c1imob/bot",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env --experimental-strip-types --no-warnings --watch src/server.ts",
+    "start": "node --env-file-if-exists=.env --experimental-strip-types --no-warnings src/server.ts",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run --coverage",
+    "test:bdd": "vitest run tests/steps",
+    "test:watch": "vitest",
+    "build": "node scripts/build.mjs"
+  },
+  "dependencies": {
+    "@c1imob/ai": "workspace:*",
+    "@c1imob/core": "workspace:*",
+    "@hono/node-server": "^2.1.8",
+    "bullmq": "^6.7.5",
+    "hono": "^4.13.18",
+    "ioredis": "^6.0.0",
+    "pino": "^10.4.0",
+    "postgres": "^3.4.9",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@c1imob/config": "workspace:*",
+    "@c1imob/db": "workspace:*",
+    "@types/node": "^22.20.5",
+    "esbuild": "^0.28.2",
+    "eslint": "^9.39.5",
+    "yaml": "^2.9.1"
+  },
+  "files": [
+    "dist"
+  ]
+}

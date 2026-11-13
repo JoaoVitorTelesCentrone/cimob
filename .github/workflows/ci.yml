@@ -1,0 +1,21 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      # Serviço de transcrição: os testes usam um motor falso (sem WhisperX nem modelo).
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install pytest && python -m pytest -q services/transcribe
+      - run: pnpm db:start
+      - run: pnpm lint && pnpm typecheck && pnpm test
+      # Os testes de banco já migram; o passo explícito garante o schema mesmo se o turbo vier do cache.
+      - run: pnpm db:migrate
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
