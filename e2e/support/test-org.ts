@@ -178,6 +178,34 @@ export class TestOrg {
     this.units.set(code, id);
   }
 
+  /** Rascunho de importação de PDF (como se o services/ingest tivesse lido a tabela). */
+  async importDraft(rows: { code: string; price: number | null }[]): Promise<string> {
+    if (!this.developmentId) throw new Error("crie uma unidade antes do rascunho");
+    const id = randomUUID();
+    await this.ok(
+      this.admin.from("unit_imports").insert({
+        id,
+        organization_id: this.id,
+        development_id: this.developmentId,
+        file_name: "tabela-e2e.pdf",
+        is_demo: true,
+      }),
+    );
+    await this.ok(
+      this.admin.from("unit_import_rows").insert(
+        rows.map((r, i) => ({
+          organization_id: this.id,
+          import_id: id,
+          position: i + 1,
+          code: r.code,
+          price: r.price,
+          status: "available",
+        })),
+      ),
+    );
+    return id;
+  }
+
   /** Marca, empreendimento e unidades do site público (dados de teste, marcados como demo). */
   async publishSite(opts: {
     development: string;

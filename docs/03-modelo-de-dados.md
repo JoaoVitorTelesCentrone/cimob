@@ -20,6 +20,8 @@ Toda tabela de negócio tem `organization_id uuid not null` e RLS. As datas são
 | consents | id, organization_id, conversation_id, scope, text_shown, is_demo, created_at | LGPD. Ligado à conversa: o aviso aparece antes de existir lead |
 | ad_spend_daily | id, organization_id, date, ad_id, campaign_id, spend, impressions, clicks | Importado da Meta |
 | meta_ads_accounts | id, organization_id, ad_account_id (único no banco), token_secret_id | Conta de anúncios; token no Vault. Só o gestor lê |
+| unit_imports | id, organization_id, development_id, file_name, status (`draft`/`published`/`discarded`), warnings, created_by, published_by, published_at, is_demo | Importação de PDF (T4.5). Só as funções gravam; o gestor lê |
+| unit_import_rows | id, organization_id, import_id, position, code, floor, area_m2, bedrooms, parking, price, status, needs_review, issues | Linha lida do PDF; nulo = ilegível (não sobrescreve ao publicar) |
 | lead_data_deletions | id, organization_id, actor_id, summary jsonb, is_demo, deleted_at | LGPD: prova anônima de exclusão (contagens, sem nome/telefone/id do lead). Só `delete_lead_data` grava |
 
 Integridade entre organizações: `developments`, `units`, `properties` e `leads` têm `unique (organization_id, id)`, e as chaves estrangeiras de `units`, `leads` e `lead_events` são compostas `(organization_id, <pai>_id)`. Um lead nunca aponta para unidade de outra imobiliária, mesmo com a service role. `lead_events` só aceita inserção (histórico não se altera).

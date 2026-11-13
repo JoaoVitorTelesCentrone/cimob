@@ -75,6 +75,14 @@ services:
       timeout: 3s
       retries: 5
 
+  ingest:
+    # Leitor de PDF da incorporadora (T4.5): Docling no CPU. Exposto pelo Caddy em /ingest, com chave.
+    build:
+      context: ../../services/ingest
+    restart: unless-stopped
+    environment:
+      INGEST_SECRET: ${INGEST_SECRET:?defina INGEST_SECRET no .env (16+ caracteres)}
+
   backup:
     # Backup verificado (T4.4): pg_dump diário + restauração de teste; falha vira alerta no Telegram.
     build:

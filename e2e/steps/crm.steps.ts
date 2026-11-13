@@ -341,3 +341,42 @@ Then("o prazo máximo continua {string} depois de recarregar", async ({ people, 
   const select = page.getByRole("form", { name: "Critério de qualificação" }).getByLabel("Prazo máximo de compra");
   await expect(select.locator("option:checked")).toHaveText(label);
 });
+
+// T4.5: revisão e publicação da tabela importada.
+let importId = "";
+
+Given(
+  "um rascunho importado com {string} a {int} e a unidade nova {string}",
+  async ({ org }, existing: string, price: number, fresh: string) => {
+    importId = await org.importDraft([
+      { code: existing, price },
+      { code: fresh, price: 900_000 },
+    ]);
+  },
+);
+
+When("{string} abre a revisão da importação", async ({ people }, name: string) => {
+  await (await people.page(name)).goto(`/app/imoveis/importar/${importId}`);
+});
+
+Then(
+  "{string} vê {string} como {string} e {string} como {string}",
+  async ({ people }, name: string, a: string, kindA: string, b: string, kindB: string) => {
+    const page = await people.page(name);
+    await expect(page.getByRole("row", { name: new RegExp(a) })).toContainText(kindA);
+    await expect(page.getByRole("row", { name: new RegExp(b) })).toContainText(kindB);
+  },
+);
+
+When("{string} publica a importação pela tela", async ({ people }, name: string) => {
+  await (await people.page(name)).getByRole("button", { name: "Publicar" }).click();
+});
+
+Then(
+  "{string} vê a unidade {string} em {string}",
+  async ({ people }, name: string, code: string, path: string) => {
+    const page = await people.page(name);
+    await page.goto(path);
+    await expect(page.getByRole("row", { name: new RegExp(code) }).filter({ visible: true })).toHaveCount(1);
+  },
+);

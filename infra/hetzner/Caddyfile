@@ -1,8 +1,18 @@
 # HTTPS automático (Let's Encrypt) para o domínio do bot. A Meta só entrega webhook em HTTPS.
 {$BOT_DOMAIN} {
-	# Payloads da Cloud API têm poucos KB; o bot ainda corta em 1 MB.
-	request_body {
-		max_size 2MB
+	# Leitor de PDF da incorporadora (T4.5): só o CRM chama, com a chave INGEST_SECRET.
+	handle_path /ingest/* {
+		request_body {
+			max_size 20MB
+		}
+		reverse_proxy ingest:8000
 	}
-	reverse_proxy bot:8787
+
+	handle {
+		# Payloads da Cloud API têm poucos KB; o bot ainda corta em 1 MB.
+		request_body {
+			max_size 2MB
+		}
+		reverse_proxy bot:8787
+	}
 }

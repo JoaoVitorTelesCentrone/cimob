@@ -85,3 +85,12 @@ Funcionalidade: CRM no navegador
   Cenário: Corretora não muda as configurações
     Quando "Marina" abre "/app/config"
     Então "Marina" vê a mensagem "Só o gestor da imobiliária muda as configurações."
+
+  Cenário: Gestora revisa e publica uma tabela de preços importada
+    Dado a unidade "E2E-101" disponível
+    E um rascunho importado com "E2E-101" a 800000 e a unidade nova "E2E-102"
+    Quando "Paula" abre a revisão da importação
+    Então "Paula" vê "E2E-101" como "Muda" e "E2E-102" como "Nova"
+    Quando "Paula" publica a importação pela tela
+    Então "Paula" vê a mensagem "Importação publicada"
+    E "Paula" vê a unidade "E2E-102" em "/app/imoveis"

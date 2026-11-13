@@ -82,6 +82,11 @@ async function InventoryView({ searchParams }: Props) {
               ? "Mudou aqui, muda no site e no espelho 3D."
               : "Só o gestor muda o status. A tela se atualiza sozinha."}
           </p>
+          {editable && (
+            <Link href="/app/imoveis/importar" className="text-sm font-semibold underline">
+              Importar tabela de preços (PDF)
+            </Link>
+          )}
         </div>
         <nav aria-label="Status" className="flex gap-1 rounded-pill border border-line p-1">
           {[null, ...UNIT_STATUSES].map((s) => (

@@ -12,7 +12,9 @@ jobs:
       # Serviço de transcrição: os testes usam um motor falso (sem WhisperX nem modelo).
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
-      - run: pip install pytest && python -m pytest -q services/transcribe
+      - run: pip install pytest "pydantic>=2.10,<3"
+      - run: python -m pytest -q services/transcribe
+      - run: cd services/ingest && python -m pytest -q
       - run: pnpm db:start
       - run: pnpm lint && pnpm typecheck && pnpm test
       # Os testes de banco já migram; o passo explícito garante o schema mesmo se o turbo vier do cache.

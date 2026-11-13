@@ -42,6 +42,10 @@ Durante a troca do contêiner do bot (alguns segundos) o Caddy responde 502; a M
   - O cofre (Vault) não entra no backup: numa restauração, a Center One cadastra de novo os tokens da Meta em Configurações.
 - **Restaurar num Supabase novo:** (1) `pnpm db:migrate` apontando para ele; (2) `pg_restore --data-only --no-owner -d "$URL" c1imob-auth-<data>.dump`; (3) `pg_restore --data-only --no-owner --disable-triggers -n public -d "$URL" c1imob-<data>.dump`; (4) cadastrar os tokens de novo.
 
+## Leitor de PDF da incorporadora
+
+O serviço `ingest` (Docling no CPU, sem OCR) lê a tabela de preços que o gestor envia em Imóveis > Importar. Fica atrás do Caddy em `https://SEU_DOMINIO/ingest` e só responde com `Authorization: Bearer INGEST_SECRET`. No web, defina `INGEST_URL=https://SEU_DOMINIO/ingest` e o mesmo `INGEST_SECRET`. A imagem tem ~3,9 GB (modelos de layout e tabela dentro). PDF escaneado (imagem) não é lido: peça o PDF original à incorporadora. O PDF não é guardado.
+
 ## Transcrição de áudio
 
 O serviço `transcribe` (WhisperX no CPU) sobe junto. A imagem tem ~4,4 GB e a primeira construção baixa o modelo (alguns minutos). Medido com 2 vCPUs: áudio de 60 s em ~13 s. Ajuste `WHISPER_THREADS` para o número de vCPUs do servidor (até 4).

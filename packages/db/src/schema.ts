@@ -355,6 +355,44 @@ export const leadDataDeletions = pgTable("lead_data_deletions", {
   deletedAt: timestamp("deleted_at", { withTimezone: true }).notNull().defaultNow(),
 }).enableRLS();
 
+/**
+ * Importação de tabela de preços em PDF (T4.5): rascunho até o gestor publicar. Só as funções
+ * create_unit_import / publish_unit_import / discard_unit_import gravam; o gestor lê.
+ */
+export const unitImports = pgTable("unit_imports", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: organizationId(),
+  developmentId: uuid("development_id").notNull(),
+  fileName: text("file_name").notNull(),
+  /** draft | published | discarded */
+  status: text("status").notNull().default("draft"),
+  warnings: jsonb("warnings").notNull().default([]),
+  createdBy: uuid("created_by"),
+  publishedBy: uuid("published_by"),
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  isDemo: boolean("is_demo").notNull().default(false),
+  createdAt: createdAt(),
+}).enableRLS();
+
+/** Linha extraída do PDF. Campo nulo = não deu para ler (não sobrescreve a unidade ao publicar). */
+export const unitImportRows = pgTable("unit_import_rows", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: organizationId(),
+  importId: uuid("import_id")
+    .notNull()
+    .references(() => unitImports.id, { onDelete: "cascade" }),
+  position: integer("position").notNull(),
+  code: text("code").notNull(),
+  floor: integer("floor"),
+  areaM2: numeric("area_m2", { precision: 8, scale: 2 }),
+  bedrooms: integer("bedrooms"),
+  parking: integer("parking"),
+  price: numeric("price", { precision: 14, scale: 2 }),
+  status: unitStatus("status"),
+  needsReview: boolean("needs_review").notNull().default(false),
+  issues: jsonb("issues").notNull().default([]),
+}).enableRLS();
+
 /** Aviso de privacidade mostrado e aceito (LGPD). Ligado à conversa: o aviso vem antes de existir lead. */
 export const consents = pgTable(
   "consents",

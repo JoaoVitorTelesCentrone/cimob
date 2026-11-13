@@ -41,7 +41,7 @@ Execute em ordem. Cada tarefa = um PR pequeno: primeiro o `.feature`, depois os 
 - [x] T4.2 Exportação e exclusão de dados do lead (LGPD).
 - [x] T4.3 Onboarding de organização (marca, número, critério) pelo `agency_admin`.
 - [x] T4.4 Sentry + alertas + backup verificado.
-- [ ] T4.5 `services/ingest` (Docling + Pydantic): PDF da incorporadora → rascunho de unidades → revisão no CRM → publicar (features/importacao/pdf-incorporadora.feature).
+- [x] T4.5 `services/ingest` (Docling + Pydantic): PDF da incorporadora → rascunho de unidades → revisão no CRM → publicar (features/importacao/pdf-incorporadora.feature).
 - [ ] T4.6 `packages/reports` (DuckDB): relatório mensal por cliente.
 
 ## Prompt sugerido por tarefa

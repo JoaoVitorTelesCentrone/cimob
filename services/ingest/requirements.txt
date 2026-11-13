@@ -1,0 +1,2 @@
+# Docling (tabelas de PDF) no CPU. O torch vem do índice CPU do PyTorch (ver Dockerfile).
+docling==2.145.0
