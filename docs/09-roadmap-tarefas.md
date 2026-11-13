@@ -40,7 +40,7 @@ Execute em ordem. Cada tarefa = um PR pequeno: primeiro o `.feature`, depois os 
 - [x] T4.1 Importar gasto da Meta (Marketing API) → `ad_spend_daily`; CPL e custo por visita no painel.
 - [x] T4.2 Exportação e exclusão de dados do lead (LGPD).
 - [x] T4.3 Onboarding de organização (marca, número, critério) pelo `agency_admin`.
-- [ ] T4.4 Sentry + alertas + backup verificado.
+- [x] T4.4 Sentry + alertas + backup verificado.
 - [ ] T4.5 `services/ingest` (Docling + Pydantic): PDF da incorporadora → rascunho de unidades → revisão no CRM → publicar (features/importacao/pdf-incorporadora.feature).
 - [ ] T4.6 `packages/reports` (DuckDB): relatório mensal por cliente.
 

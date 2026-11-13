@@ -32,6 +32,16 @@ Durante a troca do contêiner do bot (alguns segundos) o Caddy responde 502; a M
 - Alertas: defina `TELEGRAM_BOT_TOKEN` e `TELEGRAM_CHAT_ID` no `.env` para receber falhas de envio no Telegram.
 - Fila de mortos: jobs de envio que esgotaram as tentativas ficam em `outbound-dead` no Redis; as mensagens continuam `pending` no banco e a varredura manda de novo quando o problema for resolvido.
 
+## Monitoramento e backup
+
+- **Vigia das filas:** o bot confere as filas a cada minuto. Mensagem esperando mais de 60 s, falha nova ou Redis fora do ar viram alerta (log e Telegram); a volta ao normal também é avisada.
+- **Sentry (opcional):** defina `SENTRY_DSN` no `.env` (bot) e `SENTRY_DSN`/`NEXT_PUBLIC_SENTRY_DSN` no web (Vercel). Sem DSN, nada é enviado. Eventos saem sem telefone, e-mail, token, corpo, cookie ou query (`packages/core/src/scrub.ts`).
+- **Backup verificado:** o contêiner `backup` faz `pg_dump` dos dados do produto (`public` e `drizzle`) e das contas (`auth.users`, `auth.identities`) uma vez por dia, no volume `backups`. Cada cópia é restaurada num Postgres descartável e conferida tabela por tabela; se não voltar, alerta no Telegram. Cópias com mais de `BACKUP_KEEP_DAYS` dias são apagadas.
+  - Rodar na hora: `docker compose run --rm backup once`. Ver as cópias: `docker compose run --rm --entrypoint ls backup -lh /backups`.
+  - Copie as cópias para fora do servidor (ex.: Hetzner Storage Box) se o servidor for o único lugar delas.
+  - O cofre (Vault) não entra no backup: numa restauração, a Center One cadastra de novo os tokens da Meta em Configurações.
+- **Restaurar num Supabase novo:** (1) `pnpm db:migrate` apontando para ele; (2) `pg_restore --data-only --no-owner -d "$URL" c1imob-auth-<data>.dump`; (3) `pg_restore --data-only --no-owner --disable-triggers -n public -d "$URL" c1imob-<data>.dump`; (4) cadastrar os tokens de novo.
+
 ## Transcrição de áudio
 
 O serviço `transcribe` (WhisperX no CPU) sobe junto. A imagem tem ~4,4 GB e a primeira construção baixa o modelo (alguns minutos). Medido com 2 vCPUs: áudio de 60 s em ~13 s. Ajuste `WHISPER_THREADS` para o número de vCPUs do servidor (até 4).

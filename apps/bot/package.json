@@ -17,6 +17,7 @@
     "@c1imob/ai": "workspace:*",
     "@c1imob/core": "workspace:*",
     "@hono/node-server": "^2.1.8",
+    "@sentry/node": "^11.12.0",
     "bullmq": "^6.7.5",
     "hono": "^4.13.18",
     "ioredis": "^6.0.0",

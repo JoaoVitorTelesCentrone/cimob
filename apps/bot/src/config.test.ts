@@ -24,7 +24,23 @@ describe("loadConfig", () => {
       llm: null,
       transcribeUrl: null,
       adsToken: null,
+      sentry: null,
     });
+  });
+
+  it("Sentry: liga com o DSN; o ambiente é opcional (padrão production)", () => {
+    expect(loadConfig({ ...valid, SENTRY_DSN: "https://k@o1.ingest.sentry.io/1" }).sentry).toEqual({
+      dsn: "https://k@o1.ingest.sentry.io/1",
+      environment: "production",
+    });
+    expect(
+      loadConfig({ ...valid, SENTRY_DSN: "https://k@o1.ingest.sentry.io/1", SENTRY_ENVIRONMENT: "staging" })
+        .sentry?.environment,
+    ).toBe("staging");
+  });
+
+  it("Sentry: DSN fora do formato é erro de configuração", () => {
+    expect(() => loadConfig({ ...valid, SENTRY_DSN: "nao-e-url" })).toThrow(/SENTRY_DSN/);
   });
 
   it("gasto da Meta: token da Marketing API do ambiente é opcional", () => {

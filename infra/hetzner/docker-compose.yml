@@ -75,7 +75,23 @@ services:
       timeout: 3s
       retries: 5
 
+  backup:
+    # Backup verificado (T4.4): pg_dump diário + restauração de teste; falha vira alerta no Telegram.
+    build:
+      context: ../backup
+    restart: unless-stopped
+    # Só o que o backup usa (não herda os segredos do bot).
+    environment:
+      BACKUP_DATABASE_URL: ${BACKUP_DATABASE_URL:?defina BACKUP_DATABASE_URL no .env}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+      BACKUP_PING_URL: ${BACKUP_PING_URL:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+    volumes:
+      - backups:/backups
+
 volumes:
+  backups:
   caddy-data:
   caddy-config:
   redis-data:

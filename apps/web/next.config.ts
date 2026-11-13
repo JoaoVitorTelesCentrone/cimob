@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@c1imob/ui", "@c1imob/three"],
+  transpilePackages: ["@c1imob/ui", "@c1imob/three", "@c1imob/core"],
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {

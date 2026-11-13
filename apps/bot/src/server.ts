@@ -4,19 +4,28 @@ import { pino } from "pino";
 import postgres from "postgres";
 import { loadConfig } from "./config.ts";
 import { runFollowUps } from "./agent/followup.ts";
+import { Queue } from "bullmq";
+import { Redis } from "ioredis";
 import { importAdSpend } from "./ads/import.ts";
 import { createMarketingApi } from "./ads/marketing-api.ts";
 import { createAlerter } from "./alerts.ts";
+import { initSentry } from "./sentry.ts";
 import { createFlowHandler } from "./flow/runner.ts";
 import { createInboundQueue } from "./queue.ts";
 import { createWebhookApp } from "./webhook.ts";
 import { startInboundWorker } from "./workers/inbound.ts";
 import { startOutbound } from "./workers/outbound.ts";
 import { createVaultTokens } from "./outbound/tokens.ts";
-import { startTranscribe } from "./workers/transcribe.ts";
+import { startTranscribe, TRANSCRIBE_QUEUE } from "./workers/transcribe.ts";
+import { bullProbe, createWatchdog } from "./watchdog.ts";
+import { INBOUND_QUEUE } from "./queue.ts";
+import { OUTBOUND_QUEUE } from "./workers/outbound.ts";
 
 const config = loadConfig(process.env);
 const logger = pino({ level: config.logLevel });
+// Sentry (opcional): erros não tratados e alertas da operação, sem dado pessoal (LGPD).
+const sentry = initSentry(config.sentry);
+logger.info({ event: "sentry", enabled: Boolean(sentry) });
 const inbound = createInboundQueue(config.redisUrl, (e) => {
   logger.warn({ event: "redis_error", error: e.message });
 });
@@ -33,8 +42,10 @@ logger.info({ event: "llm", enabled: Boolean(extractor) });
 
 const alert = createAlerter({
   telegram: config.telegram,
-  log: ({ level, ...rest }) => {
+  log: (entry) => {
+    const { level, ...rest } = entry;
     logger[level](rest);
+    if (entry.event === "alert") sentry?.alert(entry.text);
   },
 });
 
@@ -121,6 +132,23 @@ const runAdSpend = () =>
 void runAdSpend();
 const adSpend = setInterval(() => void runAdSpend(), AD_SPEND_EVERY_MS);
 
+// Vigia das filas (doc 02): a cada minuto, mensagem parada > 60 s, falha nova ou Redis fora viram alerta.
+const WATCH_EVERY_MS = 60_000;
+const watchRedis = new Redis(config.redisUrl, { maxRetriesPerRequest: 1, enableOfflineQueue: false });
+watchRedis.on("error", () => undefined); // o vigia avisa "Redis fora do ar" pelo alerta
+const watched = [INBOUND_QUEUE, OUTBOUND_QUEUE, TRANSCRIBE_QUEUE].map(
+  (name) => [name, new Queue(name, { connection: watchRedis })] as const,
+);
+const watchdog = createWatchdog({
+  probes: watched.map(([name, queue]) => bullProbe(name, queue)),
+  alert,
+});
+const watch = setInterval(() => {
+  void watchdog.check(Date.now()).catch((e: unknown) => {
+    logger.warn({ event: "watchdog_failed", error: e instanceof Error ? e.message : String(e) });
+  });
+}, WATCH_EVERY_MS);
+
 const server = serve({ fetch: app.fetch, port: config.port }, (info) => {
   logger.info({ event: "listening", port: info.port });
 });
@@ -130,12 +158,16 @@ async function shutdown(signal: string) {
   logger.info({ event: "shutdown", signal });
   clearInterval(followUps);
   clearInterval(adSpend);
+  clearInterval(watch);
+  await Promise.all(watched.map(([, q]) => q.close()));
+  watchRedis.disconnect();
   server.close();
   await worker.close();
   await outbound.close();
   await transcribe.close();
   await inbound.close();
   await sql.end();
+  await sentry?.flush();
   process.exit(0);
 }
 process.on("SIGTERM", () => void shutdown("SIGTERM"));

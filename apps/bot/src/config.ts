@@ -28,6 +28,13 @@ const Env = z
     WHATSAPP_ACCESS_TOKEN: optional,
     /** Token da Marketing API para contas de anúncios sem token no Vault (gasto da Meta, T4.1). */
     META_ADS_ACCESS_TOKEN: optional,
+    /** Sentry (opcional): sem DSN, os erros ficam só no log. */
+    SENTRY_DSN: z
+      .string()
+      .regex(/^https:\/\/[^@\s]+@[^/\s]+\/\d+$/, "use o DSN do projeto no Sentry")
+      .optional()
+      .transform((v) => v ?? null),
+    SENTRY_ENVIRONMENT: z.string().min(1).default("production"),
     TELEGRAM_BOT_TOKEN: optional,
     TELEGRAM_CHAT_ID: optional,
     /** Extração com LLM (T2.4). Sem a chave, o bot entende só botões e palavras-chave. */
@@ -63,6 +70,7 @@ export type Config = {
   llm: { apiKey: string; model: string | null } | null;
   transcribeUrl: string | null;
   adsToken: string | null;
+  sentry: { dsn: string; environment: string } | null;
 };
 
 /** Lê a configuração do ambiente. O erro cita só os nomes das variáveis, nunca os valores. */
@@ -90,5 +98,6 @@ export function loadConfig(env: Record<string, string | undefined>): Config {
     llm: e.OPENROUTER_API_KEY ? { apiKey: e.OPENROUTER_API_KEY, model: e.OPENROUTER_MODEL } : null,
     transcribeUrl: e.TRANSCRIBE_URL,
     adsToken: e.META_ADS_ACCESS_TOKEN,
+    sentry: e.SENTRY_DSN ? { dsn: e.SENTRY_DSN, environment: e.SENTRY_ENVIRONMENT } : null,
   };
 }

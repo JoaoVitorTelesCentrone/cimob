@@ -54,4 +54,4 @@ Meta Ads ─▶ WhatsApp ─▶ Cloud API ─▶ apps/bot /webhook ─▶ fila i
 - `.env` por app; `.env.example` sempre atualizado.
 
 ## Observabilidade
-Logs estruturados (pino) no bot, Sentry no web e no bot, e alerta (Telegram ou e-mail) quando a fila tiver falhas ou um webhook não for processado em 60 s.
+Logs estruturados (pino) no bot, Sentry no web e no bot (opcional por DSN, sem dado pessoal: `packages/core/src/scrub.ts`), e alerta no Telegram pelo vigia das filas (`apps/bot/src/watchdog.ts`, a cada minuto): mensagem esperando mais de 60 s, falha nova numa fila ou Redis fora do ar; a volta ao normal também é avisada. Backup diário verificado por restauração no contêiner `backup` (`infra/backup`).
