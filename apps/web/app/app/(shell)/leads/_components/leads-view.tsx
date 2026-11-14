@@ -8,6 +8,7 @@ import {
   loadLeads,
   loadMembers,
   loadBusinessHours,
+  loadConversation,
   loadMyRole,
 } from "@/lib/leads/queries";
 import { STAGE_CLASS } from "@/lib/leads/stage-style";
@@ -51,11 +52,12 @@ export async function LeadsView({
   const raw = await searchParams;
   const params = parseListParams(raw);
   const members = await loadMembers(orgId);
-  const [all, detail, role, hours] = await Promise.all([
+  const [all, detail, role, hours, conversation] = await Promise.all([
     loadLeads(orgId, members),
     leadId ? loadLead(orgId, leadId, members) : Promise.resolve(null),
     loadMyRole(orgId),
     loadBusinessHours(orgId),
+    leadId ? loadConversation(orgId, leadId) : Promise.resolve([]),
   ]);
   const myId = leadId
     ? ((await (await createClient()).auth.getUser()).data.user?.id ?? null)
@@ -212,6 +214,7 @@ export async function LeadsView({
           closeHref={`/app/leads${query}`}
           now={now}
           hours={hours}
+          conversation={conversation}
           canAssign={canManageTeam(role)}
           canWork={canManageTeam(role) || (detail?.ownerId !== null && detail?.ownerId === myId)}
           canManageData={canManageTeam(role)}

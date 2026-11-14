@@ -1,4 +1,5 @@
 import type { BusinessHours } from "@c1imob/core";
+import { EMPTY_CONVERSATION, type ConversationLine } from "@/lib/leads/conversation";
 import Link from "next/link";
 import { ActionButton } from "@/components/action-button";
 import { formatDateTime, formatPhone } from "@/lib/format";
@@ -20,6 +21,7 @@ export function LeadDrawer({
   closeHref,
   now,
   hours = null,
+  conversation = [],
   canAssign = false,
   canWork = false,
   canManageData = false,
@@ -31,6 +33,8 @@ export function LeadDrawer({
   now: Date;
   /** Horário de atendimento: o atraso conta só dentro dele (nulo = tempo corrido). */
   hours?: BusinessHours | null;
+  /** Conversa do contato com o bot, em ordem (só leitura). */
+  conversation?: ConversationLine[];
   /** Gestor vê o botão de distribuir pelo rodízio quando o lead está sem dono. */
   canAssign?: boolean;
   /** Corretor dono ou gestor: registra 1ª resposta, próximo passo e visita. */
@@ -246,6 +250,37 @@ export function LeadDrawer({
                 )}
               </section>
             )}
+
+            <section aria-label="Conversa com o bot">
+              <h3 className="mb-2 text-[15px] font-bold">Conversa com o bot</h3>
+              {conversation.length === 0 ? (
+                <p className="text-ink-muted">{EMPTY_CONVERSATION}</p>
+              ) : (
+                <ol className="flex max-h-96 flex-col gap-2 overflow-y-auto pr-1">
+                  {conversation.map((m, i) => (
+                    <li
+                      key={i}
+                      className={`flex max-w-[85%] flex-col rounded-lg px-3 py-2 text-sm ${
+                        m.from === "bot"
+                          ? "self-end bg-brand-soft"
+                          : "self-start border border-line bg-surface"
+                      }`}
+                    >
+                      <span className="whitespace-pre-line">{m.text}</span>
+                      <span className="mt-1 text-[11px] text-ink-muted tabular-nums">
+                        {m.from === "bot" ? "Bot" : "Contato"} · {formatDateTime(m.at)}
+                        {m.status && (
+                          <span className={m.status === "Não entregue" ? "text-danger" : ""}>
+                            {" "}
+                            · {m.status}
+                          </span>
+                        )}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </section>
 
             <section>
               <h3 className="mb-2 text-[15px] font-bold">Histórico</h3>

@@ -165,6 +165,45 @@ export class TestOrg {
     this.leads.set(name, id);
   }
 
+  /** Conversa do lead com o bot: mensagens em ordem, um minuto entre elas. */
+  async conversation(
+    lead: string,
+    messages: { from: "contato" | "bot"; text: string; read?: boolean }[],
+  ): Promise<void> {
+    const conversationId = randomUUID();
+    await this.ok(
+      this.admin.from("conversations").insert({
+        id: conversationId,
+        organization_id: this.id,
+        lead_id: this.leadId(lead),
+        wa_contact: `55119${String(Math.floor(Math.random() * 1e8)).padStart(8, "0")}`,
+        is_demo: true,
+      }),
+    );
+    const start = Date.now() - messages.length * 60_000;
+    await this.ok(
+      this.admin.from("messages").insert(
+        messages.map((m, i) => {
+          const at = new Date(start + i * 60_000).toISOString();
+          const bot = m.from === "bot";
+          return {
+            organization_id: this.id,
+            conversation_id: conversationId,
+            direction: bot ? "outbound" : "inbound",
+            type: "text",
+            body: m.text,
+            created_at: at,
+            send_status: bot ? "sent" : null,
+            sent_at: bot ? at : null,
+            delivered_at: bot ? at : null,
+            read_at: bot && m.read ? at : null,
+            is_demo: true,
+          };
+        }),
+      ),
+    );
+  }
+
   leadId(name: string): string {
     const id = this.leads.get(name);
     if (!id) throw new Error(`lead desconhecido: ${name}`);

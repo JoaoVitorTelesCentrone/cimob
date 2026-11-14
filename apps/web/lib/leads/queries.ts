@@ -2,6 +2,7 @@ import { parseBusinessHours, type BusinessHours } from "@c1imob/core";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import type { TeamMember } from "@/lib/team";
+import { buildConversation, type ConversationLine } from "./conversation";
 import type { DashboardLead, SpendDay } from "./dashboard";
 import { describeEvent } from "./history";
 import type { LeadRow } from "./list";
@@ -312,4 +313,61 @@ export async function loadBusinessHours(organizationId: string): Promise<Busines
     .eq("id", organizationId)
     .maybeSingle();
   return parseBusinessHours(data?.business_hours ?? null);
+}
+
+const MAX_MESSAGES = 300;
+const MessageRecord = z.object({
+  direction: z.enum(["inbound", "outbound"]),
+  type: z.string(),
+  body: z.string().nullable(),
+  created_at: z.string().transform((v) => new Date(v)),
+  send_status: z.enum(["pending", "sent", "failed"]).nullable(),
+  delivered_at: date,
+  read_at: date,
+});
+
+/**
+ * Conversa do contato com o bot (não a do corretor com o bot). O RLS de mensagens segue o do
+ * lead: o corretor só lê a conversa dos próprios leads. Últimas 300 mensagens, em ordem.
+ */
+export async function loadConversation(
+  organizationId: string,
+  leadId: string,
+): Promise<ConversationLine[]> {
+  const conversations = await query(
+    (sb) =>
+      sb
+        .from("conversations")
+        .select("id")
+        .eq("organization_id", organizationId)
+        .eq("lead_id", leadId)
+        .is("agent_user_id", null),
+    z.array(z.object({ id: z.uuid() })),
+  );
+  if (conversations.length === 0) return [];
+  const rows = await query(
+    (sb) =>
+      sb
+        .from("messages")
+        .select("direction, type, body, created_at, send_status, delivered_at, read_at")
+        .eq("organization_id", organizationId)
+        .in(
+          "conversation_id",
+          conversations.map((c) => c.id),
+        )
+        .order("created_at", { ascending: false })
+        .limit(MAX_MESSAGES),
+    z.array(MessageRecord),
+  );
+  return buildConversation(
+    rows.map((r) => ({
+      direction: r.direction,
+      type: r.type,
+      body: r.body,
+      createdAt: r.created_at,
+      sendStatus: r.send_status,
+      deliveredAt: r.delivered_at,
+      readAt: r.read_at,
+    })),
+  );
 }

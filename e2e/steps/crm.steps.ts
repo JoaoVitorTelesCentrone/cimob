@@ -618,3 +618,25 @@ Then(
     await expect(leadRows(page).filter({ hasText: hidden })).toHaveCount(0);
   },
 );
+
+Given(
+  "a conversa de {string} com o bot, com a última mensagem lida",
+  async ({ org }, lead: string) => {
+    await org.conversation(lead, [
+      { from: "contato", text: "Olá! Código: AUR-502" },
+      { from: "bot", text: "Qual o seu objetivo?", read: true },
+    ]);
+  },
+);
+
+Then(
+  "{string} vê na conversa {string} marcada como {string}",
+  async ({ people }, name: string, text: string, status: string) => {
+    const page = await people.page(name);
+    const conversation = page
+      .getByRole("region", { name: "Conversa com o bot" })
+      .filter({ visible: true });
+    const line = conversation.getByRole("listitem").filter({ hasText: text });
+    await expect(line).toContainText(status);
+  },
+);

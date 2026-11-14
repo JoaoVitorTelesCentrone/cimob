@@ -160,3 +160,9 @@ Funcionalidade: CRM no navegador
     Quando "Paula" entra pelo link mágico
     E "Paula" escolhe a imobiliária "Segunda E2E"
     Então "Paula" vê "Zeca Prado" na lista de leads e não vê "Ana Ribeiro"
+
+  Cenário: Gestora vê na ficha a conversa com o bot e se o contato leu
+    Dado o lead "Ana Ribeiro" sem dono
+    E a conversa de "Ana Ribeiro" com o bot, com a última mensagem lida
+    Quando "Paula" abre a ficha de "Ana Ribeiro"
+    Então "Paula" vê na conversa "Qual o seu objetivo?" marcada como "Lida"
