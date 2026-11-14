@@ -87,3 +87,15 @@ Funcionalidade: Entrada de imobiliária e da equipe
   Cenário: Gestora não configura o número do bot
     Quando "Paula" configura na "Horizonte" o número "PHONE_X" com o token "EAAG-qualquer"
     Então o banco recusa
+
+  Cenário: Gestora cancela um convite pendente
+    Dado "Paula" convidou "Rafael" de e-mail "rafael@exemplo.com" como corretor
+    Quando "Paula" cancela o convite de "rafael@exemplo.com"
+    E a pessoa de e-mail "rafael@exemplo.com" entra pela 1ª vez
+    Então a pessoa de e-mail "rafael@exemplo.com" não é membro de nenhuma imobiliária
+
+  Cenário: Convite aceito não se cancela e corretora não cancela
+    Dado "Paula" convidou "Rafael" de e-mail "rafael@exemplo.com" como corretor
+    Quando "Marina" tenta cancelar o convite de "rafael@exemplo.com"
+    Então o banco recusa
+    E o convite de "rafael@exemplo.com" continua pendente

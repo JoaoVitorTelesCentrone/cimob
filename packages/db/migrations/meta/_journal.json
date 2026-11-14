@@ -211,6 +211,13 @@
       "when": 1794615700394,
       "tag": "0029_ficha_do_lead",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1794616144912,
+      "tag": "0030_cancelar_convite",
+      "breakpoints": true
     }
   ]
 }

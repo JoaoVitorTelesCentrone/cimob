@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { loadDashboardLeads, loadMyRole, loadNextInRotation, loadTeam } from "@/lib/leads/queries";
 import { currentDecision } from "@/lib/org";
 import { buildTeam, canManageTeam } from "@/lib/team";
-import { inviteMember, setMemberActive, setRotation } from "./actions";
+import { cancelInvitation, inviteMember, resendInvitation, setMemberActive, setRotation } from "./actions";
 import { ActionForm } from "@/components/action-form";
 import { loadInactiveMembers, loadPendingInvitations } from "@/lib/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -188,8 +188,22 @@ async function TeamView() {
               <h3 className="mb-2 text-[15px] font-bold">Convites pendentes</h3>
               <ul aria-label="Convites pendentes" className="flex flex-col gap-1 text-sm">
                 {pending.map((i) => (
-                  <li key={i.id}>
-                    <b>{i.name}</b> · {i.email} · {i.role === "org_admin" ? "Gestor" : "Corretor"}
+                  <li key={i.id} className="flex flex-wrap items-center gap-3">
+                    <span>
+                      <b>{i.name}</b> · {i.email} · {i.role === "org_admin" ? "Gestor" : "Corretor"}
+                    </span>
+                    <ActionButton
+                      action={resendInvitation}
+                      fields={{ invitationId: i.id }}
+                      label={`Reenviar convite de ${i.name}`}
+                      className="text-xs font-semibold underline"
+                    />
+                    <ActionButton
+                      action={cancelInvitation}
+                      fields={{ invitationId: i.id }}
+                      label={`Cancelar convite de ${i.name}`}
+                      className="text-xs font-semibold text-danger underline"
+                    />
                   </li>
                 ))}
               </ul>

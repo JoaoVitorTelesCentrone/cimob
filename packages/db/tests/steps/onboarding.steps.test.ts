@@ -391,4 +391,46 @@ describeFeature(feature, ({ Background, Scenario: Sc, ScenarioOutline, AfterEach
     configureWhatsapp(When);
     refused(Then);
   });
+
+  const invitationId = async (email: string) => {
+    const [row] = await s.conn<{ id: string }[]>`select id from invitations where email = ${email}`;
+    return row?.id ?? "";
+  };
+  const cancel = async (user: string, email: string) => {
+    const id = await invitationId(email);
+    dbError = await s.expectError(() => s.as(user, (c) => c`select public.cancel_invitation(${id})`));
+  };
+  const invited = (Given: (t: string, f: (c: unknown, u: string, n: string, e: string) => Promise<void>) => void) => {
+    Given("{string} convidou {string} de e-mail {string} como corretor", async (_ctx, user, name, email) => {
+      await invite(user, "Horizonte", name, email, null);
+      expect(dbError).toBeNull();
+    });
+  };
+
+  Sc("Gestora cancela um convite pendente", ({ Given, When, Then, And }) => {
+    invited(Given);
+    When("{string} cancela o convite de {string}", async (_ctx, user: string, email: string) => {
+      await cancel(user, email);
+      expect(dbError).toBeNull();
+    });
+    And("a pessoa de e-mail {string} entra pela 1ª vez", async (_ctx, email: string) => {
+      await firstLogin(email);
+    });
+    Then("a pessoa de e-mail {string} não é membro de nenhuma imobiliária", async (_ctx, email: string) => {
+      const rows = await s.conn`select 1 from memberships where user_id = ${byEmail.get(email) ?? ""}`;
+      expect(rows).toHaveLength(0);
+    });
+  });
+
+  Sc("Convite aceito não se cancela e corretora não cancela", ({ Given, When, Then, And }) => {
+    invited(Given);
+    When("{string} tenta cancelar o convite de {string}", async (_ctx, user: string, email: string) => {
+      await cancel(user, email);
+    });
+    refused(Then);
+    And("o convite de {string} continua pendente", async (_ctx, email: string) => {
+      const rows = await s.conn`select 1 from invitations where email = ${email} and accepted_at is null`;
+      expect(rows).toHaveLength(1);
+    });
+  });
 });

@@ -116,3 +116,8 @@ Funcionalidade: CRM no navegador
     Quando "Marina" registra a 1ª resposta de "Isabela Martins" pela ficha
     E "Marina" define o próximo passo "Enviar fotos do decorado" pela ficha
     Então o histórico da ficha de "Isabela Martins" mostra "1ª resposta registrada" e "Próximo passo"
+
+  Cenário: Gestora cancela um convite pendente pela tela
+    Quando "Paula" convida o corretor "Thiago" pela tela da equipe
+    E "Paula" cancela o convite de "Thiago" pela tela da equipe
+    Então "Paula" não vê "Thiago" nos convites pendentes

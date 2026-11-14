@@ -157,3 +157,37 @@ export async function setMemberActive(
   revalidatePath("/app/equipe");
   return { ok: true, message: active ? "Acesso reativado" : "Acesso desativado" };
 }
+
+/** Cancela convite ainda não aceito (o banco confere se quem pede é gestor). */
+export async function cancelInvitation(
+  _prev: ActionResult | null,
+  form: FormData,
+): Promise<ActionResult> {
+  const id = z.uuid().safeParse(form.get("invitationId"));
+  if (!id.success) return { ok: false, message: "Pedido inválido" };
+  const result = await (await createClient()).rpc("cancel_invitation", { p_invitation: id.data });
+  if (result.error) return { ok: false, message: "Não foi possível cancelar (já aceito ou sem permissão)" };
+  revalidatePath("/app/equipe");
+  return { ok: true, message: "Convite cancelado" };
+}
+
+/** Manda de novo o link de acesso para um convite pendente (o RLS só mostra o convite ao gestor). */
+export async function resendInvitation(
+  _prev: ActionResult | null,
+  form: FormData,
+): Promise<ActionResult> {
+  const id = z.uuid().safeParse(form.get("invitationId"));
+  if (!id.success) return { ok: false, message: "Pedido inválido" };
+  const { data } = await (await createClient())
+    .from("invitations")
+    .select("email")
+    .eq("id", id.data)
+    .is("accepted_at", null)
+    .maybeSingle();
+  const email = z.object({ email: z.email() }).safeParse(data);
+  if (!email.success) return { ok: false, message: "Convite não encontrado" };
+  const sent = await sendAccessLink(email.data.email, (await headers()).get("origin") ?? "");
+  return sent
+    ? { ok: true, message: "Convite reenviado" }
+    : { ok: false, message: "O e-mail não saiu. Tente de novo em alguns minutos." };
+}

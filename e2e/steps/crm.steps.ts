@@ -458,3 +458,20 @@ Then(
     await expect(drawer.locator("ol li", { hasText: b }).first()).toBeVisible();
   },
 );
+
+When(
+  "{string} cancela o convite de {string} pela tela da equipe",
+  async ({ people }, name: string, invitee: string) => {
+    const page = await people.page(name);
+    await page.reload();
+    await page.getByRole("button", { name: `Cancelar convite de ${invitee}` }).click();
+    // Cancelado, o convite sai da lista (o botão e a mensagem saem junto).
+    await expect(page.getByRole("button", { name: `Cancelar convite de ${invitee}` })).toHaveCount(0);
+  },
+);
+
+Then("{string} não vê {string} nos convites pendentes", async ({ people }, name: string, invitee: string) => {
+  const page = await people.page(name);
+  await page.reload();
+  await expect(page.getByRole("list", { name: "Convites pendentes" }).filter({ hasText: invitee })).toHaveCount(0);
+});
