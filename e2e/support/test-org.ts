@@ -69,6 +69,23 @@ export class TestOrg {
     );
   }
 
+  /** Outra imobiliária (apagada no fim) com a pessoa como gestora; devolve o id. */
+  async otherOrg(name: string, person: string): Promise<string> {
+    const id = randomUUID();
+    const slug = `e2e-${id.slice(0, 8)}`;
+    await this.ok(this.admin.from("organizations").insert({ id, name, slug, is_demo: true }));
+    this.createdSlugs.push(slug);
+    await this.ok(
+      this.admin.from("memberships").insert({
+        organization_id: id,
+        user_id: this.userId(person),
+        role: "org_admin",
+        display_name: person,
+      }),
+    );
+    return id;
+  }
+
   /** Pessoa da Center One (admin da plataforma), sem imobiliária. */
   async platformAdmin(name: string): Promise<void> {
     const email = `e2e-${name.toLowerCase()}-${randomUUID().slice(0, 8)}@test.local`;
@@ -115,20 +132,33 @@ export class TestOrg {
 
   async lead(
     name: string,
-    opts: { owner?: string; stage?: string; assignedHoursAgo?: number } = {},
+    opts: {
+      owner?: string;
+      stage?: string;
+      assignedHoursAgo?: number;
+      /** Resultado do bot (falso = nutrição). */
+      qualified?: boolean;
+      createdDaysAgo?: number;
+      /** Outra imobiliária do cenário (padrão: a principal). */
+      organizationId?: string;
+    } = {},
   ): Promise<void> {
     const id = randomUUID();
     const hours = opts.assignedHoursAgo ?? 0.1;
     await this.ok(
       this.admin.from("leads").insert({
         id,
-        organization_id: this.id,
+        organization_id: opts.organizationId ?? this.id,
         name,
         phone: `55119${String(Math.floor(Math.random() * 1e8)).padStart(8, "0")}`,
         stage: opts.stage ?? "new",
         lost_reason: opts.stage === "lost" ? "Teste" : null,
         owner_id: opts.owner ? this.userId(opts.owner) : null,
         assigned_at: opts.owner ? new Date(Date.now() - hours * 3_600_000).toISOString() : null,
+        ...(opts.qualified === undefined ? {} : { qualified: opts.qualified }),
+        ...(opts.createdDaysAgo === undefined
+          ? {}
+          : { created_at: new Date(Date.now() - opts.createdDaysAgo * 86_400_000).toISOString() }),
         is_demo: true,
       }),
     );

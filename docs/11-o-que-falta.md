@@ -4,7 +4,7 @@ Atualizado em 14/11/2026. Fonte das tarefas: `docs/09-roadmap-tarefas.md`. Este 
 
 ## Onde estamos
 - **Feito:** Fase 0 inteira (exceto T0.0), Fase 1 do CRM (T1.1–T1.6), Fase 2 do bot (T2.1–T2.8) Fase 3 do site (T3.1–T3.5: site público, prédio 3D, modelo do arquiteto, card da unidade, sol, vistas, status ao vivo, fallback 2D e performance mobile) T4.1 (gasto da Meta e custo no painel), T4.2 (exportar e excluir dados do lead, LGPD), T4.3 (agência cria imobiliária, convites, marca, critério e parte técnica) e T4.4 (vigia das filas, Sentry e backup verificado), T4.5 (importação de PDF da incorporadora) e T4.6 (relatório mensal). **Roadmap concluído** (falta só a T0.0, ferramentas do agente). A T3.5 e o começo da T4.1 (cenários, steps e migrações 0017/0018) foram feitos no opencode; o Claude Code terminou a T4.1.
-- **Verde hoje:** `pnpm lint`, `pnpm typecheck`, `pnpm test` (core 14, ui 36, ai 11, three 91, reports 28, db 725 + 6 pulados do `@backup`, web 670, bot 612 + 4 pulados do cenário `@llm`; Python: transcribe 7, ingest 20) e `next build`. O `pnpm test:e2e` roda 25 cenários (CRM e site) e não pula nenhum: o último (sem WebGL) passou com a T3.5.
+- **Verde hoje:** `pnpm lint`, `pnpm typecheck`, `pnpm test` (core 14, ui 36, ai 11, three 91, reports 28, db 725 + 6 pulados do `@backup`, web 670, bot 612 + 4 pulados do cenário `@llm`; Python: transcribe 7, ingest 20) e `next build`. O `pnpm test:e2e` roda 34 cenários (CRM e site) e não pula nenhum: o último (sem WebGL) passou com a T3.5.
 - **Primeiro commit em 13/11/2026** (`master`, até a T4.3). Daqui em diante, um commit por tarefa. Remoto: github.com/JoaoVitorTelesCentrone/cimob (branch `main`); o CI roda a cada push.
 
 ## 1. Tarefas do roadmap que faltam
@@ -77,7 +77,7 @@ Atualizado em 14/11/2026. Fonte das tarefas: `docs/09-roadmap-tarefas.md`. Este 
 
 ### 2.2 Testes e qualidade
 - **E2E:** `features/crm/crm-no-navegador.feature` (7 cenários: link mágico, alerta de atraso, rodízio pela equipe e pela ficha, permissões da corretora, perder lead no funil com motivo, status e funil ao vivo entre duas pessoas). Cada cenário cria a própria imobiliária (`is_demo`) e usuários e apaga tudo no fim. As chaves vêm de `supabase status` (ou do ambiente no CI); a chave secreta fica só no processo de teste. O Playwright faz a build e sobe o app na porta 3100.
-- **Ainda sem E2E:** a lista de leads (filtros na tela), o período do painel e a troca de imobiliária. O fluxo de e-mail do link mágico também não (o E2E gera o link pela API; o Mailpit continua desligado).
+- **E2E da lista, do painel e da troca de imobiliária:** feitos em 14/11 (filtro de atrasados e de nutrição, busca sem acento, período de 7/30 dias, gestora de duas imobiliárias). Ainda sem E2E: o fluxo de e-mail do link mágico (o E2E gera o link pela API; o Mailpit continua desligado) e o WhatsApp do corretor na tela de equipe.
 - **Fora da métrica de cobertura** (código de ligação com Next/Supabase): `lib/supabase/**`, `lib/org.ts`, `lib/leads/queries.ts`, as Server Actions e as rotas `/auth/callback` e `/auth/confirm`. Devem ser cobertos pelo E2E.
 - **Seed de demo sem RED prévio:** os cenários de `dados-demo.feature` nasceram verdes (o código veio junto com os steps).
 - **CI nunca rodou:** `.github/workflows/ci.yml` sobe o Supabase (`pnpm db:start`), o que pode ser lento no runner. Rodar no primeiro push.

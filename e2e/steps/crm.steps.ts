@@ -241,7 +241,9 @@ When(
 Then(
   "{string} vê o aviso de que a exclusão não pode ser desfeita",
   async ({ people }, name: string) => {
-    const dialog = (await people.page(name)).getByRole("alertdialog", { name: "Confirmar exclusão" });
+    const dialog = (await people.page(name)).getByRole("alertdialog", {
+      name: "Confirmar exclusão",
+    });
     await expect(dialog).toContainText("A exclusão não pode ser desfeita");
   },
 );
@@ -253,7 +255,9 @@ When("{string} confirma a exclusão", async ({ people }, name: string) => {
 });
 
 Then("{string} vê a mensagem {string}", async ({ people }, name: string, text: string) => {
-  await expect((await people.page(name)).getByRole("status").filter({ hasText: text })).toBeVisible();
+  await expect(
+    (await people.page(name)).getByRole("status").filter({ hasText: text }),
+  ).toBeVisible();
 });
 
 Then("{string} não aparece mais na lista de leads", async ({ people, org }, lead: string) => {
@@ -267,12 +271,9 @@ Then("{string} não aparece mais na lista de leads", async ({ people, org }, lea
   ).toHaveCount(0);
 });
 
-When(
-  "{string} abre a ficha de {string}",
-  async ({ people, org }, name: string, lead: string) => {
-    await (await people.page(name)).goto(`/app/leads/${org.leadId(lead)}`);
-  },
-);
+When("{string} abre a ficha de {string}", async ({ people, org }, name: string, lead: string) => {
+  await (await people.page(name)).goto(`/app/leads/${org.leadId(lead)}`);
+});
 
 Then("{string} não vê as ações de dados do lead", async ({ people }, name: string) => {
   const drawer = drawerOf(await people.page(name));
@@ -312,11 +313,14 @@ When(
   },
 );
 
-Then("{string} vê {string} nos convites pendentes", async ({ people }, name: string, invitee: string) => {
-  const page = await people.page(name);
-  await page.reload();
-  await expect(page.getByRole("list", { name: "Convites pendentes" })).toContainText(invitee);
-});
+Then(
+  "{string} vê {string} nos convites pendentes",
+  async ({ people }, name: string, invitee: string) => {
+    const page = await people.page(name);
+    await page.reload();
+    await expect(page.getByRole("list", { name: "Convites pendentes" })).toContainText(invitee);
+  },
+);
 
 When("{string} entra pelo convite", async ({ people, org }, name: string) => {
   await org.invitee(name);
@@ -334,13 +338,18 @@ When(
   },
 );
 
-Then("o prazo máximo continua {string} depois de recarregar", async ({ people, org }, label: string) => {
-  const [admin] = [...org.people.keys()];
-  const page = await people.page(admin ?? "");
-  await page.reload();
-  const select = page.getByRole("form", { name: "Critério de qualificação" }).getByLabel("Prazo máximo de compra");
-  await expect(select.locator("option:checked")).toHaveText(label);
-});
+Then(
+  "o prazo máximo continua {string} depois de recarregar",
+  async ({ people, org }, label: string) => {
+    const [admin] = [...org.people.keys()];
+    const page = await people.page(admin ?? "");
+    await page.reload();
+    const select = page
+      .getByRole("form", { name: "Critério de qualificação" })
+      .getByLabel("Prazo máximo de compra");
+    await expect(select.locator("option:checked")).toHaveText(label);
+  },
+);
 
 // T4.5: revisão e publicação da tabela importada.
 let importId = "";
@@ -377,7 +386,9 @@ Then(
   async ({ people }, name: string, code: string, path: string) => {
     const page = await people.page(name);
     await page.goto(path);
-    await expect(page.getByRole("row", { name: new RegExp(code) }).filter({ visible: true })).toHaveCount(1);
+    await expect(
+      page.getByRole("row", { name: new RegExp(code) }).filter({ visible: true }),
+    ).toHaveCount(1);
   },
 );
 
@@ -393,8 +404,18 @@ Then(
   async ({ people, org }, leads: number, visits: number) => {
     const [admin] = [...org.people.keys()];
     const funnel = (await people.page(admin ?? "")).getByRole("region", { name: "Funil do mês" });
-    await expect(funnel.getByRole("row", { name: /^Leads/ }).getByRole("cell").nth(1)).toHaveText(String(leads));
-    await expect(funnel.getByRole("row", { name: /^Visitas/ }).getByRole("cell").nth(1)).toHaveText(String(visits));
+    await expect(
+      funnel
+        .getByRole("row", { name: /^Leads/ })
+        .getByRole("cell")
+        .nth(1),
+    ).toHaveText(String(leads));
+    await expect(
+      funnel
+        .getByRole("row", { name: /^Visitas/ })
+        .getByRole("cell")
+        .nth(1),
+    ).toHaveText(String(visits));
   },
 );
 
@@ -422,7 +443,9 @@ Then(
     const [admin] = [...org.people.keys()];
     const page = await people.page(admin ?? "");
     await page.goto("/app/imoveis");
-    await expect(page.getByRole("row", { name: new RegExp(code) }).filter({ visible: true })).toContainText(price);
+    await expect(
+      page.getByRole("row", { name: new RegExp(code) }).filter({ visible: true }),
+    ).toContainText(price);
   },
 );
 
@@ -466,15 +489,22 @@ When(
     await page.reload();
     await page.getByRole("button", { name: `Cancelar convite de ${invitee}` }).click();
     // Cancelado, o convite sai da lista (o botão e a mensagem saem junto).
-    await expect(page.getByRole("button", { name: `Cancelar convite de ${invitee}` })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: `Cancelar convite de ${invitee}` })).toHaveCount(
+      0,
+    );
   },
 );
 
-Then("{string} não vê {string} nos convites pendentes", async ({ people }, name: string, invitee: string) => {
-  const page = await people.page(name);
-  await page.reload();
-  await expect(page.getByRole("list", { name: "Convites pendentes" }).filter({ hasText: invitee })).toHaveCount(0);
-});
+Then(
+  "{string} não vê {string} nos convites pendentes",
+  async ({ people }, name: string, invitee: string) => {
+    const page = await people.page(name);
+    await page.reload();
+    await expect(
+      page.getByRole("list", { name: "Convites pendentes" }).filter({ hasText: invitee }),
+    ).toHaveCount(0);
+  },
+);
 
 // Logo da marca (PNG mínimo gerado no teste).
 const PNG_1PX = Buffer.from(
@@ -486,7 +516,9 @@ When("{string} envia o logo da imobiliária nas configurações", async ({ peopl
   const page = await people.page(name);
   await page.goto("/app/config");
   const form = page.getByRole("form", { name: "Logo" });
-  await form.getByLabel("Arquivo do logo").setInputFiles({ name: "logo.png", mimeType: "image/png", buffer: PNG_1PX });
+  await form
+    .getByLabel("Arquivo do logo")
+    .setInputFiles({ name: "logo.png", mimeType: "image/png", buffer: PNG_1PX });
   await form.getByRole("button", { name: "Enviar logo" }).click();
 });
 
@@ -497,3 +529,92 @@ Then("o site da imobiliária mostra o logo", async ({ org, people, baseURL }) =>
   const logo = page.locator("header img").first();
   await expect(logo).toHaveAttribute("src", /\/storage\/v1\/object\/public\/brand\//);
 });
+
+// Lista de leads, período do painel e troca de imobiliária.
+
+/** Linhas da tabela de leads (sem o cabeçalho), visíveis (o Next mantém páginas ocultas montadas). */
+const leadRows = (page: Page) => page.locator("tbody tr").filter({ visible: true });
+
+Given("o lead {string} que o bot mandou para nutrição", async ({ org }, lead: string) => {
+  await org.lead(lead, { qualified: false });
+});
+
+Given("o lead {string} que chegou há {int} dias", async ({ org }, lead: string, days: number) => {
+  await org.lead(lead, { createdDaysAgo: days });
+});
+
+Given(
+  "{string} também é gestora da imobiliária {string} com o lead {string}",
+  async ({ org }, person: string, name: string, lead: string) => {
+    const other = await org.otherOrg(name, person);
+    await org.lead(lead, { organizationId: other });
+  },
+);
+
+When(
+  "{string} marca {string} na lista de leads e filtra",
+  async ({ people }, name: string, label: string) => {
+    const page = await people.page(name);
+    await page.goto("/app/leads");
+    await page.getByLabel(label).check();
+    await page.getByRole("button", { name: "Filtrar" }).click();
+    await page.waitForURL(/\/app\/leads\?/);
+  },
+);
+
+When("{string} busca {string} na lista de leads", async ({ people }, name: string, q: string) => {
+  const page = await people.page(name);
+  await page.goto(`/app/leads?q=${encodeURIComponent(q)}`);
+});
+
+Then("{string} vê na lista só {string}", async ({ people }, name: string, lead: string) => {
+  const page = await people.page(name);
+  await expect(leadRows(page)).toHaveCount(1);
+  await expect(leadRows(page).first()).toContainText(lead);
+});
+
+Then(
+  "{string} vê a etiqueta {string} em {string}",
+  async ({ people }, name: string, tag: string, lead: string) => {
+    const page = await people.page(name);
+    const row = leadRows(page).filter({ hasText: lead });
+    await expect(row.getByText(tag, { exact: true })).toBeVisible();
+  },
+);
+
+Then("o painel de {string} mostra {int} leads", async ({ people }, name: string, count: number) => {
+  const page = await people.page(name);
+  const tile = page
+    .locator("section > div")
+    .filter({ visible: true })
+    .filter({ has: page.getByText("Leads", { exact: true }) })
+    .first();
+  await expect(tile).toContainText(String(count));
+  await expect(tile.locator("p").nth(1)).toHaveText(String(count));
+});
+
+When("{string} escolhe o período {string}", async ({ people }, name: string, label: string) => {
+  const page = await people.page(name);
+  await page
+    .getByRole("navigation", { name: "Período" })
+    .getByRole("link", { name: label })
+    .click();
+  await page.waitForURL(/period=/);
+});
+
+When("{string} escolhe a imobiliária {string}", async ({ people }, name: string, org: string) => {
+  const page = await people.page(name);
+  if (!page.url().includes("/app/escolher")) await page.goto("/app/escolher");
+  await page.getByRole("button", { name: org }).click();
+  await page.waitForURL((u) => u.pathname === "/app");
+});
+
+Then(
+  "{string} vê {string} na lista de leads e não vê {string}",
+  async ({ people }, name: string, shown: string, hidden: string) => {
+    const page = await people.page(name);
+    await page.goto("/app/leads");
+    await expect(leadRows(page).filter({ hasText: shown })).toHaveCount(1);
+    await expect(leadRows(page).filter({ hasText: hidden })).toHaveCount(0);
+  },
+);

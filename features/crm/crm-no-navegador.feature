@@ -126,3 +126,37 @@ Funcionalidade: CRM no navegador
     Quando "Paula" envia o logo da imobiliária nas configurações
     Então "Paula" vê a mensagem "Logo salvo"
     E o site da imobiliária mostra o logo
+
+  Cenário: Gestora filtra os atrasados na lista de leads
+    Dado o lead "Ana Ribeiro" atribuído a "Marina" há 3 horas sem resposta
+    E o lead "Bruno Lima" de "Marina" no estágio "contacted"
+    Quando "Paula" marca "Só atrasados" na lista de leads e filtra
+    Então "Paula" vê na lista só "Ana Ribeiro"
+
+  Cenário: Gestora filtra os leads em nutrição
+    Dado o lead "Érica Nunes" que o bot mandou para nutrição
+    E o lead "Ana Ribeiro" atribuído a "Marina" há 1 horas sem resposta
+    Quando "Paula" marca "Só em nutrição" na lista de leads e filtra
+    Então "Paula" vê na lista só "Érica Nunes"
+    E "Paula" vê a etiqueta "Nutrição" em "Érica Nunes"
+
+  Cenário: Gestora busca um lead pelo nome sem acento
+    Dado o lead "Érica Nunes" sem dono
+    E o lead "Bruno Lima" sem dono
+    Quando "Paula" busca "erica" na lista de leads
+    Então "Paula" vê na lista só "Érica Nunes"
+
+  Cenário: Painel muda o período pela tela
+    Dado o lead "Ana Ribeiro" que chegou há 10 dias
+    E o lead "Bruno Lima" que chegou há 1 dias
+    Quando "Paula" abre "/app"
+    Então o painel de "Paula" mostra 2 leads
+    Quando "Paula" escolhe o período "Últimos 7 dias"
+    Então o painel de "Paula" mostra 1 leads
+
+  Cenário: Gestora de duas imobiliárias troca de uma para a outra
+    Dado "Paula" também é gestora da imobiliária "Segunda E2E" com o lead "Zeca Prado"
+    E o lead "Ana Ribeiro" sem dono
+    Quando "Paula" entra pelo link mágico
+    E "Paula" escolhe a imobiliária "Segunda E2E"
+    Então "Paula" vê "Zeca Prado" na lista de leads e não vê "Ana Ribeiro"
