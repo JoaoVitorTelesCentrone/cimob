@@ -44,7 +44,9 @@ export const organizations = pgTable("organizations", {
   rotationCursor: uuid("rotation_cursor"),
   /** Critério de qualificação (doc 04): prazo máximo ('3m', '6m' ou 'any') e quanto da faixa cobre do preço. */
   qualifyTimeframe: text("qualify_timeframe").notNull().default("6m"),
-  qualifyPriceShare: numeric("qualify_price_share", { precision: 3, scale: 2 }).notNull().default("0.90"),
+  qualifyPriceShare: numeric("qualify_price_share", { precision: 3, scale: 2 })
+    .notNull()
+    .default("0.90"),
   /** Horário de atendimento { days: 0–6, open: "HH:MM", close: "HH:MM" } em Brasília; nulo = sempre. */
   businessHours: jsonb("business_hours"),
   isDemo: boolean("is_demo").notNull().default(false),
@@ -304,6 +306,9 @@ export const messages = pgTable(
     sentAt: timestamp("sent_at", { withTimezone: true }),
     /** Código e mensagem do erro da Meta (nunca o token). */
     sendError: text("send_error"),
+    /** Avisos de status da Meta (`statuses` do webhook): entregue e lida no aparelho do contato. */
+    deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+    readAt: timestamp("read_at", { withTimezone: true }),
     isDemo: boolean("is_demo").notNull().default(false),
     createdAt: createdAt(),
   },

@@ -87,6 +87,7 @@ const worker = startInboundWorker({
   onMessage: flow,
   afterCommit: (conversationId) => outbound.notify(conversationId),
   onTranscribe: (messageId) => transcribe.enqueue(messageId),
+  alert,
   log: ({ level, ...rest }) => {
     logger[level](rest);
   },
@@ -127,14 +128,20 @@ const runAdSpend = () =>
       logger[level](rest);
     },
   }).catch((e: unknown) => {
-    logger.warn({ event: "ad_spend_run_failed", error: e instanceof Error ? e.message : String(e) });
+    logger.warn({
+      event: "ad_spend_run_failed",
+      error: e instanceof Error ? e.message : String(e),
+    });
   });
 void runAdSpend();
 const adSpend = setInterval(() => void runAdSpend(), AD_SPEND_EVERY_MS);
 
 // Vigia das filas (doc 02): a cada minuto, mensagem parada > 60 s, falha nova ou Redis fora viram alerta.
 const WATCH_EVERY_MS = 60_000;
-const watchRedis = new Redis(config.redisUrl, { maxRetriesPerRequest: 1, enableOfflineQueue: false });
+const watchRedis = new Redis(config.redisUrl, {
+  maxRetriesPerRequest: 1,
+  enableOfflineQueue: false,
+});
 watchRedis.on("error", () => undefined); // o vigia avisa "Redis fora do ar" pelo alerta
 const watched = [INBOUND_QUEUE, OUTBOUND_QUEUE, TRANSCRIBE_QUEUE].map(
   (name) => [name, new Queue(name, { connection: watchRedis })] as const,

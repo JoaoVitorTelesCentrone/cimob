@@ -3,11 +3,12 @@ import {
   adTextMessage,
   audioMessage,
   buttonReply,
+  deliveryStatus,
   envelope,
   readStatus,
   textMessage,
 } from "../../tests/support/payloads.ts";
-import { parseInbound } from "./parse.ts";
+import { parseInbound, parseStatuses } from "./parse.ts";
 
 /** Uma mensagem qualquer dentro do envelope da Cloud API. */
 const single = (message: Record<string, unknown>) =>
@@ -37,7 +38,11 @@ describe("parseInbound", () => {
     const [plain] = parseInbound(textMessage("wamid.1", "5511987654321", "PHONE", "Olá"));
     expect(plain?.adId).toBeNull();
     const [post] = parseInbound(
-      single({ type: "text", text: { body: "Oi" }, referral: { source_type: "post", source_id: "p1" } }),
+      single({
+        type: "text",
+        text: { body: "Oi" },
+        referral: { source_type: "post", source_id: "p1" },
+      }),
     );
     expect(post?.adId).toBeNull();
   });
@@ -104,5 +109,41 @@ describe("parseInbound", () => {
   it("texto muito longo é cortado em 4.096 caracteres (limite do WhatsApp)", () => {
     const [m] = parseInbound(textMessage("w", "55", "P", "a".repeat(5000)));
     expect(m?.body).toHaveLength(4096);
+  });
+});
+
+describe("parseStatuses", () => {
+  it("lê entregue, lida e falha (com código e título do erro da Meta)", () => {
+    expect(parseStatuses(deliveryStatus("P", "w1", "delivered"))).toEqual([
+      {
+        phoneNumberId: "P",
+        waMessageId: "w1",
+        status: "delivered",
+        at: new Date(1763000100_000),
+        error: null,
+      },
+    ]);
+    expect(
+      parseStatuses(
+        deliveryStatus("P", "w1", "failed", { code: 131026, title: "Message undeliverable" }),
+      ),
+    ).toEqual([
+      {
+        phoneNumberId: "P",
+        waMessageId: "w1",
+        status: "failed",
+        at: new Date(1763000100_000),
+        error: "131026 Message undeliverable",
+      },
+    ]);
+  });
+
+  it("ignora 'sent' (o envio já marcou), status desconhecido e item malformado", () => {
+    expect(parseStatuses(deliveryStatus("P", "w1", "sent"))).toEqual([]);
+    expect(
+      parseStatuses(envelope("P", { statuses: [{ id: "w", status: "deleted", timestamp: "1" }] })),
+    ).toEqual([]);
+    expect(parseStatuses(envelope("P", { statuses: [{ status: "read" }] }))).toEqual([]);
+    expect(parseStatuses(textMessage("w", "55", "P", "oi"))).toEqual([]);
   });
 });

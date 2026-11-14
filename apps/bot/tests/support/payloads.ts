@@ -69,6 +69,25 @@ export const readStatus = (to: string) =>
     ],
   });
 
+/** Aviso de status de uma mensagem enviada (`statuses`); `failed` vem com o erro da Meta. */
+export const deliveryStatus = (
+  to: string,
+  id: string,
+  status: "sent" | "delivered" | "read" | "failed",
+  error?: { code: number; title: string },
+) =>
+  envelope(to, {
+    statuses: [
+      {
+        id,
+        status,
+        timestamp: "1763000100",
+        recipient_id: "5511987654321",
+        ...(error ? { errors: [error] } : {}),
+      },
+    ],
+  });
+
 export const listReply = (id: string, from: string, to: string, title: string, replyId: string) =>
   withContact(to, from, {
     id,

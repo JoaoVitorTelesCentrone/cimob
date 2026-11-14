@@ -239,6 +239,13 @@
       "when": 1794616940650,
       "tag": "0033_horario_grant",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1794669257302,
+      "tag": "0034_jazzy_shatterstar",
+      "breakpoints": true
     }
   ]
 }

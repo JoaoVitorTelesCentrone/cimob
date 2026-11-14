@@ -1,5 +1,5 @@
 import type postgres from "postgres";
-import type { InboundMessage } from "./parse.ts";
+import type { DeliveryStatus, InboundMessage } from "./parse.ts";
 
 export type Recorded = { conversationId: string; leadId: string | null; messageId: string };
 
@@ -16,6 +16,14 @@ export type InboundStore = {
     message: InboundMessage,
     handle: (recorded: Recorded, tx: postgres.TransactionSql) => Promise<void>,
   ): Promise<{ isNew: boolean; conversationId: string }>;
+  /**
+   * Grava entregue/lida/falha na mensagem enviada com esse wamid, só dentro da imobiliária.
+   * `updated` é falso quando a mensagem não é dela (ou não existe).
+   */
+  recordStatus(
+    organizationId: string,
+    status: DeliveryStatus,
+  ): Promise<{ updated: boolean; orgName: string }>;
 };
 
 /**
@@ -24,6 +32,32 @@ export type InboundStore = {
  */
 export function createPostgresStore(sql: postgres.Sql): InboundStore {
   return {
+    async recordStatus(organizationId, status) {
+      const at = status.at;
+      const rows =
+        status.status === "failed"
+          ? await sql`
+              update messages set send_status = 'failed', send_error = ${status.error}
+              where organization_id = ${organizationId} and wa_message_id = ${status.waMessageId}
+                and direction = 'outbound'
+              returning id`
+          : status.status === "read"
+            ? await sql`
+                update messages
+                set read_at = coalesce(read_at, ${at}), delivered_at = coalesce(delivered_at, ${at})
+                where organization_id = ${organizationId} and wa_message_id = ${status.waMessageId}
+                  and direction = 'outbound'
+                returning id`
+            : await sql`
+                update messages set delivered_at = coalesce(delivered_at, ${at})
+                where organization_id = ${organizationId} and wa_message_id = ${status.waMessageId}
+                  and direction = 'outbound'
+                returning id`;
+      const [org] = await sql<{ name: string }[]>`
+        select name from organizations where id = ${organizationId}`;
+      return { updated: rows.length > 0, orgName: org?.name ?? "?" };
+    },
+
     async findOrganization(phoneNumberId) {
       const [row] = await sql<{ organization_id: string }[]>`
         select organization_id from whatsapp_accounts where phone_number_id = ${phoneNumberId}`;

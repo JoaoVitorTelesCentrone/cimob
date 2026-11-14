@@ -1,5 +1,5 @@
 import type postgres from "postgres";
-import { parseInbound, type InboundMessage } from "./parse.ts";
+import { parseInbound, parseStatuses, type InboundMessage } from "./parse.ts";
 import type { InboundStore } from "./store.ts";
 
 /** O que o bot (flow, T2.3) recebe para cada mensagem nova. `tx` = mesma transação da gravação. */
@@ -30,6 +30,8 @@ export type InboundDeps = {
   afterCommit?: (conversationId: string) => Promise<void>;
   /** Chamado depois do commit para cada áudio que o flow mandou transcrever (T2.8). */
   onTranscribe?: (messageId: string) => Promise<void>;
+  /** Alerta da operação (falha de entrega avisada pela Meta depois de aceitar). */
+  alert?: (text: string) => Promise<void>;
 };
 
 /**
@@ -37,6 +39,7 @@ export type InboundDeps = {
  * de novo não muda nada); qualquer outro erro sobe, e o BullMQ tenta de novo com espera crescente.
  */
 export async function processInbound(payload: unknown, deps: InboundDeps): Promise<void> {
+  await processStatuses(payload, deps);
   for (const message of parseInbound(payload)) {
     const organizationId = await deps.store.findOrganization(message.phoneNumberId);
     if (!organizationId) {
@@ -74,5 +77,29 @@ export async function processInbound(payload: unknown, deps: InboundDeps): Promi
     for (const id of [conversationId, ...others]) await deps.afterCommit?.(id);
     const audioId = toTranscribe();
     if (audioId) await deps.onTranscribe?.(audioId);
+  }
+}
+
+/**
+ * Avisos de entrega, leitura e falha das mensagens que o bot mandou. Cada aviso só mexe em
+ * mensagens da imobiliária dona do número que avisou; falha vira alerta (sem dado do contato).
+ */
+async function processStatuses(payload: unknown, deps: InboundDeps): Promise<void> {
+  for (const status of parseStatuses(payload)) {
+    const organizationId = await deps.store.findOrganization(status.phoneNumberId);
+    if (!organizationId) {
+      deps.log({
+        level: "warn",
+        event: "unknown_phone_number_id",
+        phoneNumberId: status.phoneNumberId,
+      });
+      continue;
+    }
+    const { updated, orgName } = await deps.store.recordStatus(organizationId, status);
+    if (updated && status.status === "failed") {
+      await deps.alert?.(
+        `Falha de entrega (${orgName}): a Meta recusou uma mensagem depois de aceitar. ${status.error ?? ""}`.trim(),
+      );
+    }
   }
 }

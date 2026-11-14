@@ -45,6 +45,27 @@ const Value = z.object({
     .array(z.object({ wa_id: z.string(), profile: z.object({ name: z.string() }).optional() }))
     .optional(),
   messages: z.array(z.unknown()).optional(),
+  statuses: z.array(z.unknown()).optional(),
+});
+
+/** Aviso da Meta sobre uma mensagem que o bot enviou (`statuses` do webhook). */
+export type DeliveryStatus = {
+  phoneNumberId: string;
+  waMessageId: string;
+  status: "delivered" | "read" | "failed";
+  at: Date;
+  /** "código título" do primeiro erro, só em `failed`. */
+  error: string | null;
+};
+
+const Status = z.object({
+  id: z.string().min(1),
+  // "sent" fica de fora: quem marca o envio é o worker outbound, quando a Meta aceita.
+  status: z.enum(["delivered", "read", "failed"]),
+  timestamp: z.string().regex(/^\d+$/),
+  errors: z
+    .array(z.looseObject({ code: z.number().optional(), title: z.string().optional() }))
+    .optional(),
 });
 
 const Payload = z.object({
@@ -102,6 +123,37 @@ export function parseInbound(payload: unknown): InboundMessage[] {
         replyId,
         adId: adIdOf(m.data),
         raw: m.data,
+      });
+    }
+  }
+  return out;
+}
+
+/** Extrai os avisos de entrega, leitura e falha. Item malformado ou status desconhecido é ignorado. */
+export function parseStatuses(payload: unknown): DeliveryStatus[] {
+  const parsed = Payload.safeParse(payload);
+  if (!parsed.success) return [];
+
+  const out: DeliveryStatus[] = [];
+  for (const change of parsed.data.entry.flatMap((e) => e.changes)) {
+    if (change.field !== "messages") continue;
+    const value = Value.safeParse(change.value);
+    if (!value.success) continue;
+    for (const item of value.data.statuses ?? []) {
+      const s = Status.safeParse(item);
+      if (!s.success) continue;
+      const first = s.data.status === "failed" ? s.data.errors?.[0] : undefined;
+      const error = first
+        ? [first.code, first.title].filter((v) => v !== undefined).join(" ") || "erro sem código"
+        : s.data.status === "failed"
+          ? "erro sem código"
+          : null;
+      out.push({
+        phoneNumberId: value.data.metadata.phone_number_id,
+        waMessageId: s.data.id,
+        status: s.data.status,
+        at: new Date(Number(s.data.timestamp) * 1000),
+        error,
       });
     }
   }

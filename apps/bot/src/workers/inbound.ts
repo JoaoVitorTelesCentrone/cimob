@@ -15,6 +15,8 @@ export type InboundWorkerDeps = {
   afterCommit: (conversationId: string) => Promise<void>;
   /** Depois do commit: áudio que o flow mandou transcrever. */
   onTranscribe: (messageId: string) => Promise<void>;
+  /** Alerta da operação: falha de entrega avisada pela Meta depois de aceitar. */
+  alert: (text: string) => Promise<void>;
   log: (
     entry:
       | InboundLog
@@ -41,6 +43,7 @@ export function startInboundWorker(deps: InboundWorkerDeps) {
         log: deps.log,
         afterCommit: deps.afterCommit,
         onTranscribe: deps.onTranscribe,
+        alert: deps.alert,
       }),
     { connection, concurrency: 8 },
   );

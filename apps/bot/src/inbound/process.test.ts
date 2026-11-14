@@ -1,15 +1,27 @@
 import type postgres from "postgres";
 import { describe, expect, it } from "vitest";
-import { textMessage } from "../../tests/support/payloads.ts";
+import { deliveryStatus, textMessage } from "../../tests/support/payloads.ts";
+import type { DeliveryStatus } from "./parse.ts";
 import type { InboundStore } from "./store.ts";
 import { processInbound, type InboundLog, type NewMessage } from "./process.ts";
 
 const tx = {} as postgres.TransactionSql;
 
-function fakeStore(orgs: Record<string, string>): InboundStore & { seen: Set<string> } {
+function fakeStore(
+  orgs: Record<string, string>,
+): InboundStore & { seen: Set<string>; statuses: DeliveryStatus[] } {
   const seen = new Set<string>();
+  const statuses: DeliveryStatus[] = [];
   return {
     seen,
+    statuses,
+    recordStatus(_org, status) {
+      statuses.push(status);
+      return Promise.resolve({
+        updated: status.waMessageId !== "desconhecida",
+        orgName: "Horizonte",
+      });
+    },
     findOrganization: (phone) => Promise.resolve(orgs[phone] ?? null),
     async recordInbound(_org, m, handle) {
       const conversationId = `conv-${m.from}`;
@@ -119,6 +131,7 @@ describe("processInbound: outras conversas", () => {
     await processInbound(textMessage("w9", "55", "P", "oi"), {
       store: {
         findOrganization: () => Promise.resolve("org-1"),
+        recordStatus: () => Promise.resolve({ updated: false, orgName: "?" }),
         async recordInbound(_org, _m, handle) {
           await handle(
             { conversationId: "conv-lead", leadId: null, messageId: "msg-1" },
@@ -157,5 +170,49 @@ describe("processInbound: áudio", () => {
       },
     });
     expect(queued).toEqual(["msg-w-audio"]);
+  });
+});
+
+describe("processInbound com avisos de status", () => {
+  const run = async (payload: unknown, orgs: Record<string, string> = { P: "org-1" }) => {
+    const store = fakeStore(orgs);
+    const alerts: string[] = [];
+    const logs: InboundLog[] = [];
+    await processInbound(payload, {
+      store,
+      onMessage: () => Promise.reject(new Error("status não aciona o bot")),
+      log: (e) => logs.push(e),
+      alert: (text) => {
+        alerts.push(text);
+        return Promise.resolve();
+      },
+    });
+    return { store, alerts, logs };
+  };
+
+  it("grava entregue/lida sem alerta", async () => {
+    const { store, alerts } = await run(deliveryStatus("P", "w1", "read"));
+    expect(store.statuses.map((s) => s.status)).toEqual(["read"]);
+    expect(alerts).toEqual([]);
+  });
+
+  it("falha gravada vira alerta com a imobiliária e o erro, sem o telefone do contato", async () => {
+    const { alerts } = await run(
+      deliveryStatus("P", "w1", "failed", { code: 131026, title: "Message undeliverable" }),
+    );
+    expect(alerts).toEqual([
+      "Falha de entrega (Horizonte): a Meta recusou uma mensagem depois de aceitar. 131026 Message undeliverable",
+    ]);
+  });
+
+  it("falha de mensagem que não é nossa não alerta; número desconhecido vai para o log", async () => {
+    expect(
+      (await run(deliveryStatus("P", "desconhecida", "failed", { code: 1, title: "x" }))).alerts,
+    ).toEqual([]);
+    const { store, logs } = await run(deliveryStatus("P-X", "w1", "delivered"), {});
+    expect(store.statuses).toEqual([]);
+    expect(logs).toEqual([
+      { level: "warn", event: "unknown_phone_number_id", phoneNumberId: "P-X" },
+    ]);
   });
 });

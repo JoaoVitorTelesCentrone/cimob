@@ -183,6 +183,32 @@ export class BotTestDb {
                    where organization_id = ${this.orgId(org)} and code = ${code}`;
   }
 
+  /** Mensagem que o bot já mandou (aceita pela Meta), com o wamid devolvido no envio. */
+  async sentMessage(org: string, contact: string, waMessageId: string): Promise<void> {
+    const [conv] = await this.sql<{ id: string }[]>`
+      insert into conversations (organization_id, wa_contact, is_demo)
+      values (${this.orgId(org)}, ${contact}, true) returning id`;
+    await this.sql`insert into messages (organization_id, conversation_id, wa_message_id, direction,
+                     type, body, send_status, sent_at, is_demo)
+                   values (${this.orgId(org)}, ${conv?.id ?? ""}, ${waMessageId}, 'outbound',
+                     'text', 'Oi', 'sent', now(), true)`;
+  }
+
+  async deliveryOf(waMessageId: string) {
+    const [row] = await this.sql<
+      {
+        delivered: boolean;
+        read: boolean;
+        send_status: string;
+        send_error: string | null;
+      }[]
+    >`
+      select delivered_at is not null as delivered, read_at is not null as read,
+             send_status::text, send_error
+      from messages where wa_message_id = ${waMessageId}`;
+    return row;
+  }
+
   async leadByPhone(org: string, phone: string) {
     const [row] = await this.sql<
       {
