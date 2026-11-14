@@ -282,6 +282,11 @@ export class TestOrg {
   }
 
   async cleanup(): Promise<void> {
+    // Logo enviado no cenário (Storage não apaga em cascata com a organização).
+    const files = await this.admin.storage.from("brand").list(this.id);
+    if (files.data && files.data.length > 0) {
+      await this.admin.storage.from("brand").remove(files.data.map((f) => `${this.id}/${f.name}`));
+    }
     await this.admin.from("organizations").delete().eq("id", this.id);
     if (this.createdSlugs.length > 0) {
       await this.admin.from("organizations").delete().in("slug", this.createdSlugs);

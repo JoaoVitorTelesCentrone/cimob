@@ -126,3 +126,15 @@ export function parseAdsAccount(raw: string): Parsed<string> {
     ? { ok: true, value: `act_${digits}` }
     : fail("A conta de anúncios é act_ seguido de números.");
 }
+
+const LOGO_TYPES: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
+export const MAX_LOGO_BYTES = 1_048_576;
+
+/** Logo da marca: PNG, JPEG ou WebP até 1 MB (sem SVG, que pode carregar script). */
+export function parseLogo(file: { type: string; size: number }): Parsed<{ ext: string; type: string }> {
+  if (file.size <= 0) return fail("Escolha a imagem do logo.");
+  const ext = LOGO_TYPES[file.type];
+  if (!ext) return fail("Use PNG, JPG ou WebP.");
+  if (file.size > MAX_LOGO_BYTES) return fail("O logo passa de 1 MB.");
+  return { ok: true, value: { ext, type: file.type } };
+}

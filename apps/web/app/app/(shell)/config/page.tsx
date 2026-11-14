@@ -6,7 +6,15 @@ import { loadMyRole } from "@/lib/leads/queries";
 import { brandForm, criteriaForm, TIMEFRAMES } from "@/lib/onboarding";
 import { currentDecision } from "@/lib/org";
 import { canManageTeam } from "@/lib/team";
-import { saveAdsAccount, saveBrand, saveCriteria, saveWhatsappAccount } from "./actions";
+import { ActionButton } from "@/components/action-button";
+import {
+  removeLogo,
+  saveAdsAccount,
+  saveBrand,
+  saveCriteria,
+  saveWhatsappAccount,
+  uploadLogo,
+} from "./actions";
 
 export default function ConfigPage() {
   return (
@@ -36,6 +44,8 @@ async function Config() {
   ]);
   const admin = canManageTeam(role);
   const brand = brandForm(settings?.brand ?? {});
+  const rawLogo = settings?.brand["logoUrl"];
+  const logoUrl = typeof rawLogo === "string" && /^https?:\/\//.test(rawLogo) ? rawLogo : null;
   const criteria = criteriaForm(
     settings?.qualify_timeframe ?? "6m",
     settings?.qualify_price_share ?? "0.90",
@@ -98,6 +108,34 @@ async function Config() {
                 </label>
               </div>
             </ActionForm>
+          </section>
+
+          <section className={panel}>
+            <h2 className={heading}>Logo</h2>
+            <p className={hint}>Aparece no topo do site. PNG, JPG ou WebP até 1 MB.</p>
+            <div className="flex flex-wrap items-start gap-4">
+              {logoUrl && (
+                <img src={logoUrl} alt="Logo atual" className="h-14 w-auto rounded-sm border border-line bg-surface p-1" />
+              )}
+              <ActionForm action={uploadLogo} submitLabel="Enviar logo" label="Logo">
+                <input
+                  name="logo"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  required
+                  aria-label="Arquivo do logo"
+                  className="text-sm"
+                />
+              </ActionForm>
+              {logoUrl && (
+                <ActionButton
+                  action={removeLogo}
+                  fields={{}}
+                  label="Remover logo"
+                  className="h-10 rounded-pill border border-line px-5 text-sm font-semibold"
+                />
+              )}
+            </div>
           </section>
 
           <section className={panel}>

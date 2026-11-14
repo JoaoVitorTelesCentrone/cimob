@@ -129,12 +129,16 @@ async function Tenant({ params }: Props) {
 
       <header className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
         <div className="flex items-center gap-3">
-          <span
-            aria-hidden
-            className="grid size-10 place-items-center rounded-md bg-brand font-display font-extrabold text-on-brand"
-          >
-            {initials(brand.name)}
-          </span>
+          {brand.logoUrl ? (
+            <img src={brand.logoUrl} alt="" className="h-10 w-auto max-w-40 object-contain" />
+          ) : (
+            <span
+              aria-hidden
+              className="grid size-10 place-items-center rounded-md bg-brand font-display font-extrabold text-on-brand"
+            >
+              {initials(brand.name)}
+            </span>
+          )}
           <div>
             <p className="font-display text-lg leading-5 font-extrabold">{brand.name}</p>
             {brand.creci && <p className="text-xs text-ink-muted">{brand.creci}</p>}

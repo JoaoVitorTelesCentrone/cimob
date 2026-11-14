@@ -121,3 +121,8 @@ Funcionalidade: CRM no navegador
     Quando "Paula" convida o corretor "Thiago" pela tela da equipe
     E "Paula" cancela o convite de "Thiago" pela tela da equipe
     Então "Paula" não vê "Thiago" nos convites pendentes
+
+  Cenário: Gestora envia o logo e o site passa a mostrar
+    Quando "Paula" envia o logo da imobiliária nas configurações
+    Então "Paula" vê a mensagem "Logo salvo"
+    E o site da imobiliária mostra o logo

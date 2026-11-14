@@ -218,6 +218,13 @@
       "when": 1794616144912,
       "tag": "0030_cancelar_convite",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1794616444203,
+      "tag": "0031_logo_da_marca",
+      "breakpoints": true
     }
   ]
 }

@@ -6,6 +6,7 @@ import {
   parseAdsAccount,
   parseBrand,
   parseCriteria,
+  parseLogo,
   parsePhoneNumberId,
 } from "@/lib/onboarding";
 import { createClient } from "@/lib/supabase/server";
@@ -38,7 +39,7 @@ export async function saveBrand(_prev: ActionResult | null, form: FormData): Pro
   if (updated.error || updated.data.length === 0) {
     return { ok: false, message: "Só o gestor muda a marca" };
   }
-  revalidatePath("/", "layout");
+  revalidatePath("/app/config");
   return { ok: true, message: "Marca salva" };
 }
 
@@ -107,4 +108,46 @@ export async function saveAdsAccount(
   }
   revalidatePath("/app/config");
   return { ok: true, message: "Conta de anúncios salva" };
+}
+
+/** Grava o brand com uma mudança (lido do banco para não apagar o resto). */
+async function patchBrand(id: string, patch: Record<string, unknown>) {
+  const supabase = await createClient();
+  const current = await supabase.from("organizations").select("brand").eq("id", id).single();
+  const merged = { ...(current.data?.brand as Record<string, unknown>), ...patch };
+  const brand = Object.fromEntries(Object.entries(merged).filter(([, v]) => v !== null));
+  return supabase.from("organizations").update({ brand }).eq("id", id).select("id");
+}
+
+/** Logo no Storage (bucket brand, pasta da imobiliária); o RLS do Storage só deixa o gestor. */
+export async function uploadLogo(_prev: ActionResult | null, form: FormData): Promise<ActionResult> {
+  const file = form.get("logo");
+  if (!(file instanceof File)) return { ok: false, message: "Escolha a imagem do logo." };
+  const input = parseLogo(file);
+  if (!input.ok) return { ok: false, message: input.message };
+  const id = await orgId();
+  if (!id) return { ok: false, message: "Escolha uma imobiliária" };
+
+  const supabase = await createClient();
+  const path = `${id}/logo.${input.value.ext}`;
+  const uploaded = await supabase.storage
+    .from("brand")
+    .upload(path, file, { upsert: true, contentType: input.value.type, cacheControl: "3600" });
+  if (uploaded.error) return { ok: false, message: "Só o gestor muda o logo" };
+
+  // ?v= troca a URL a cada envio: o site não fica com o logo antigo em cache.
+  const url = `${supabase.storage.from("brand").getPublicUrl(path).data.publicUrl}?v=${String(Date.now())}`;
+  const saved = await patchBrand(id, { logoUrl: url });
+  if (saved.error || saved.data.length === 0) return { ok: false, message: "Só o gestor muda o logo" };
+  revalidatePath("/app/config");
+  return { ok: true, message: "Logo salvo" };
+}
+
+export async function removeLogo(): Promise<ActionResult> {
+  const id = await orgId();
+  if (!id) return { ok: false, message: "Escolha uma imobiliária" };
+  const saved = await patchBrand(id, { logoUrl: null });
+  if (saved.error || saved.data.length === 0) return { ok: false, message: "Só o gestor muda o logo" };
+  revalidatePath("/app/config");
+  return { ok: true, message: "Logo removido" };
 }

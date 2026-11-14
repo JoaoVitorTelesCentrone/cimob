@@ -475,3 +475,25 @@ Then("{string} não vê {string} nos convites pendentes", async ({ people }, nam
   await page.reload();
   await expect(page.getByRole("list", { name: "Convites pendentes" }).filter({ hasText: invitee })).toHaveCount(0);
 });
+
+// Logo da marca (PNG mínimo gerado no teste).
+const PNG_1PX = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC",
+  "base64",
+);
+
+When("{string} envia o logo da imobiliária nas configurações", async ({ people }, name: string) => {
+  const page = await people.page(name);
+  await page.goto("/app/config");
+  const form = page.getByRole("form", { name: "Logo" });
+  await form.getByLabel("Arquivo do logo").setInputFiles({ name: "logo.png", mimeType: "image/png", buffer: PNG_1PX });
+  await form.getByRole("button", { name: "Enviar logo" }).click();
+});
+
+Then("o site da imobiliária mostra o logo", async ({ org, people, baseURL }) => {
+  const [admin] = [...org.people.keys()];
+  const page = await people.page(admin ?? "");
+  await page.goto(org.siteUrl(baseURL ?? "http://localhost:3100"));
+  const logo = page.locator("header img").first();
+  await expect(logo).toHaveAttribute("src", /\/storage\/v1\/object\/public\/brand\//);
+});

@@ -6,6 +6,7 @@ import {
   parseBrand,
   parseCriteria,
   parseInvite,
+  parseLogo,
   parseNewOrg,
   parsePhoneNumberId,
   slugify,
@@ -141,5 +142,18 @@ describe("parte técnica", () => {
     expect(parseAdsAccount("act_777")).toEqual({ ok: true, value: "act_777" });
     expect(parseAdsAccount("777")).toEqual({ ok: true, value: "act_777" });
     expect(parseAdsAccount("act_x")).toMatchObject({ ok: false });
+  });
+});
+
+describe("parseLogo", () => {
+  it("aceita PNG, JPEG e WebP até 1 MB, com a extensão certa", () => {
+    expect(parseLogo({ type: "image/png", size: 50_000 })).toEqual({ ok: true, value: { ext: "png", type: "image/png" } });
+    expect(parseLogo({ type: "image/jpeg", size: 1_048_576 })).toEqual({ ok: true, value: { ext: "jpg", type: "image/jpeg" } });
+  });
+
+  it("recusa SVG, arquivo vazio e acima de 1 MB", () => {
+    expect(parseLogo({ type: "image/svg+xml", size: 100 })).toEqual({ ok: false, message: "Use PNG, JPG ou WebP." });
+    expect(parseLogo({ type: "image/png", size: 0 })).toEqual({ ok: false, message: "Escolha a imagem do logo." });
+    expect(parseLogo({ type: "image/png", size: 1_048_577 })).toEqual({ ok: false, message: "O logo passa de 1 MB." });
   });
 });

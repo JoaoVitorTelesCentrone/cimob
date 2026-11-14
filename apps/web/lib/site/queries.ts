@@ -41,11 +41,16 @@ const Brand = z.object({
     .regex(/^[1-9]\d{9,14}$/)
     .optional()
     .catch(undefined),
+  logoUrl: z
+    .string()
+    .regex(/^https?:\/\/\S+$/)
+    .optional()
+    .catch(undefined),
 });
 
 export function siteBrand(name: string, brand: Record<string, unknown>): SiteBrand {
   const b = Brand.parse(brand);
-  return { name, creci: b.creci ?? null, whatsapp: b.whatsapp ?? null };
+  return { name, creci: b.creci ?? null, whatsapp: b.whatsapp ?? null, logoUrl: b.logoUrl ?? null };
 }
 
 /**

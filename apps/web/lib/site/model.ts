@@ -7,7 +7,13 @@ import { unitCard, type UnitCard } from "./unit-card";
  * não há botão. O site nunca inventa número (regra 2 do AGENTS.md).
  */
 
-export type SiteBrand = { name: string; creci: string | null; whatsapp: string | null };
+export type SiteBrand = {
+  name: string;
+  creci: string | null;
+  whatsapp: string | null;
+  /** Logo no Storage; sem logo, o site mostra as iniciais. */
+  logoUrl?: string | null;
+};
 
 export type SiteUnit = {
   code: string;
