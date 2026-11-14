@@ -1,19 +1,23 @@
 import { BUDGET, GOAL, HUMAN, TIMEFRAME, VISIT, matchOption, type Option } from "./options.ts";
 import { qualifies, type Criteria } from "./qualify.ts";
 import {
+  asksFacts,
   asksPrice,
+  factText,
   formatPrice,
   isQuestion,
   privacyNotice,
   properName,
   wantsHuman,
+  type Fact,
   type HandoffReason,
 } from "./texts.ts";
 
 /**
  * Máquina de estados da conversa (doc 04). Função pura: recebe o retrato da conversa e a mensagem,
  * devolve o novo estado, o que responder e o que registrar. Banco e envio ficam no runner.
- * O bot nunca inventa: preço só da ficha; o resto vira pergunta anotada para o corretor.
+ * O bot nunca inventa: preço, área, quartos e vagas só da ficha; o resto vira pergunta anotada
+ * para o corretor.
  */
 
 export type FlowState =
@@ -41,7 +45,13 @@ export type UnitInfo = {
   code: string;
   price: number | null;
   status: "available" | "reserved" | "sold";
+  /** Ficha da unidade: o bot só responde o que estiver preenchido aqui. */
+  areaM2?: number | null;
+  bedrooms?: number | null;
+  parking?: number | null;
 };
+
+const FACT_FIELD = { area: "areaM2", bedrooms: "bedrooms", parking: "parking" } as const;
 
 export type Snapshot = {
   state: FlowState;
@@ -188,7 +198,16 @@ function finish(s: Snapshot, name: string, patch: Partial<Outcome>): Outcome {
   const timeframe = TIMEFRAME.find((t) => t.title === lead.timeframe);
   const unitPrice = s.unit && s.unit.status !== "sold" ? s.unit.price : null;
   // Sem faixa ou prazo (não deveria acontecer) quem decide é o corretor.
-  if (!budget || !timeframe || qualifies({ budget, timeframe, unitPrice, ...(s.org.criteria ? { criteria: s.org.criteria } : {}) })) {
+  if (
+    !budget ||
+    !timeframe ||
+    qualifies({
+      budget,
+      timeframe,
+      unitPrice,
+      ...(s.org.criteria ? { criteria: s.org.criteria } : {}),
+    })
+  ) {
     return handOff(s, "qualified", withName);
   }
   return outcome(s, {
@@ -268,6 +287,36 @@ function priceAnswer(s: Snapshot, asked: string): Pick<Outcome, "replies" | "eve
     ],
     events: [{ type: "question_for_agent", data: { question: asked } }],
   };
+}
+
+/**
+ * Área, quartos e vagas com texto fixo, só com o que está na ficha. O que faltar (campo vazio,
+ * sem unidade ou unidade vendida) vira pergunta anotada para o corretor.
+ */
+function factsAnswer(
+  s: Snapshot,
+  facts: Fact[],
+  asked: string,
+): Pick<Outcome, "replies" | "events"> {
+  const unit = s.unit && s.unit.status !== "sold" ? s.unit : null;
+  const known: string[] = [];
+  for (const fact of facts) {
+    const value = unit?.[FACT_FIELD[fact]];
+    if (typeof value === "number") known.push(factText(fact, value));
+  }
+  const missing = known.length < facts.length;
+  const events: FlowEvent[] = missing
+    ? [{ type: "question_for_agent", data: { question: asked } }]
+    : [];
+  if (!unit || known.length === 0) return { replies: [NOTED], events };
+
+  const list =
+    known.length === 1 ? known[0] : `${known.slice(0, -1).join(", ")} e ${known.at(-1) ?? ""}`;
+  const answer = `Pela ficha, a unidade ${unit.code} tem ${list ?? ""}.`;
+  const body = missing
+    ? `${answer} Sobre o resto, não tenho essa informação confirmada. Anotei sua pergunta para o corretor.`
+    : answer;
+  return { replies: [{ kind: "text", body }], events };
 }
 
 /** Ordem das perguntas e o campo da ficha que cada uma preenche. */
@@ -406,6 +455,16 @@ export function step(s: Snapshot, input: Input): Outcome {
 
   if (!input.replyId && asksPrice(text)) {
     const { replies, events } = priceAnswer(s, text);
+    return outcome(here, {
+      ...base,
+      replies: [...replies, question(s.state)],
+      events: [...llmEvents, ...events],
+    });
+  }
+
+  const facts = input.replyId ? [] : asksFacts(text);
+  if (facts.length > 0) {
+    const { replies, events } = factsAnswer(s, facts, text);
     return outcome(here, {
       ...base,
       replies: [...replies, question(s.state)],

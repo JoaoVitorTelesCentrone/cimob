@@ -118,6 +118,54 @@ describe("perguntas do contato", () => {
     }
   });
 
+  const FICHA = {
+    code: "AUR-502",
+    price: 765_000,
+    status: "available" as const,
+    areaM2: 84.5,
+    bedrooms: 3,
+    parking: 2,
+  };
+
+  it("área, quartos e vagas: responde pela ficha, sem anotar, e repete a pergunta", () => {
+    const o = step(at({ state: "asking_budget", unit: FICHA }), text("metragem, quartos e vagas?"));
+    expect(o.replies[0]?.body).toBe(
+      "Pela ficha, a unidade AUR-502 tem 84,5 m², 3 quartos e 2 vagas.",
+    );
+    expect(o.events).toEqual([]);
+    expect(o.state).toBe("asking_budget");
+    expect(options(o)).toContain("R$ 600–800 mil");
+    expect(o.data.misses ?? 0).toBe(0);
+  });
+
+  it("campo vazio na ficha: responde o que tem e anota o resto para o corretor", () => {
+    const unit = { ...FICHA, parking: null };
+    const o = step(at({ state: "asking_goal", unit }), text("qual a área e tem vaga?"));
+    expect(o.replies[0]?.body).toBe(
+      "Pela ficha, a unidade AUR-502 tem 84,5 m². Sobre o resto, não tenho essa informação confirmada. Anotei sua pergunta para o corretor.",
+    );
+    expect(o.events).toEqual([
+      { type: "question_for_agent", data: { question: "qual a área e tem vaga?" } },
+    ]);
+  });
+
+  it("sem nada na ficha, sem unidade ou unidade vendida: não inventa e anota", () => {
+    for (const unit of [
+      null,
+      { ...FICHA, bedrooms: null },
+      { ...FICHA, status: "sold" as const },
+      { code: "AUR-9", price: null, status: "available" as const },
+    ]) {
+      const o = step(at({ state: "asking_goal", unit }), text("quantos quartos?"));
+      expect(o.replies[0]?.body).toBe(
+        "Não tenho essa informação confirmada. Anotei sua pergunta para o corretor.",
+      );
+      expect(o.events).toEqual([
+        { type: "question_for_agent", data: { question: "quantos quartos?" } },
+      ]);
+    }
+  });
+
   it("pergunta fora da ficha: diz que não tem a informação, anota e repete a pergunta", () => {
     const o = step(at({ state: "asking_timeframe" }), text("aceita pet?"));
     expect(o.replies[0]?.body).toMatch(/não tenho essa informação confirmada/i);

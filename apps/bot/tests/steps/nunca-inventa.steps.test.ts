@@ -109,4 +109,48 @@ describeFeature(feature, ({ Background, Scenario, AfterEachScenario }) => {
       for (const v of values) expect(v.replace(/\s/g, " ")).toBe(price);
     });
   });
+
+  const questionsForAgent = async () => {
+    const lead = await db.leadByPhone(ORG, CONTACT);
+    return (await db.events(lead?.id ?? "")).filter((e) => e.type === "question_for_agent");
+  };
+
+  Scenario("Pergunta de área, quartos e vagas usa só a ficha", ({ Given, And, When, Then }) => {
+    Given(
+      "a ficha de {string} com 84,5 m², {int} quartos e {int} vagas",
+      async (_ctx, code: string, bedrooms: number, parking: number) => {
+        await db.unitFacts(ORG, code, { areaM2: 84.5, bedrooms, parking });
+      },
+    );
+    ongoing(And);
+    asks(When);
+    Then("o bot responde com {string} e {string}", async (_ctx, a: string, b: string) => {
+      const first = (await newReplies())[0] ?? "";
+      expect(first).toContain(a);
+      expect(first).toContain(b);
+    });
+    And("o bot não registra pergunta para o corretor", async () => {
+      expect(await questionsForAgent()).toEqual([]);
+    });
+    And("o bot repete a pergunta pendente", async () => {
+      expect(await lastOptions()).toEqual(expect.arrayContaining(GOAL.map((g) => g.title)));
+    });
+  });
+
+  Scenario("Campo vazio na ficha vai para o corretor", ({ Given, And, When, Then }) => {
+    Given("a ficha de {string} sem número de vagas", async (_ctx, code: string) => {
+      await db.unitFacts(ORG, code, { areaM2: 84.5, bedrooms: 3, parking: null });
+    });
+    ongoing(And);
+    asks(When);
+    Then("o bot responde que não tem essa informação confirmada", async () => {
+      expect((await newReplies())[0]).toMatch(/não tenho essa informação confirmada/i);
+    });
+    And("a pergunta {string} fica registrada para o corretor", async (_ctx, q: string) => {
+      expect(await questionsForAgent()).toContainEqual({
+        type: "question_for_agent",
+        data: { question: q },
+      });
+    });
+  });
 });

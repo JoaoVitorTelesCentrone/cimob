@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  asksFacts,
   asksPrice,
+  factText,
   formatPrice,
   isQuestion,
   privacyNotice,
@@ -59,5 +61,32 @@ describe("intenções", () => {
   it("pergunta aberta", () => {
     expect(isQuestion("aceita pet?")).toBe(true);
     expect(isQuestion("tem varanda")).toBe(false);
+  });
+});
+
+describe("perguntas sobre a ficha (área, quartos, vagas)", () => {
+  it("reconhece cada campo, na ordem área, quartos, vagas", () => {
+    expect(asksFacts("qual a metragem e quantas vagas?")).toEqual(["area", "parking"]);
+    expect(asksFacts("Quantos m² tem?")).toEqual(["area"]);
+    expect(asksFacts("tamanho do apê")).toEqual(["area"]);
+    expect(asksFacts("quantos quartos? tem garagem?")).toEqual(["bedrooms", "parking"]);
+    expect(asksFacts("são 3 dormitórios?")).toEqual(["bedrooms"]);
+    expect(asksFacts("tem estacionamento?")).toEqual(["parking"]);
+  });
+
+  it("o resto não é pergunta da ficha", () => {
+    expect(asksFacts("aceita pet?")).toEqual([]);
+    expect(asksFacts("qual o valor?")).toEqual([]);
+    expect(asksFacts("tem suíte?")).toEqual([]);
+  });
+
+  it("escreve o valor da ficha em português, sem arredondar", () => {
+    expect(factText("area", 84.5)).toBe("84,5 m²");
+    expect(factText("area", 120)).toBe("120 m²");
+    expect(factText("bedrooms", 1)).toBe("1 quarto");
+    expect(factText("bedrooms", 3)).toBe("3 quartos");
+    expect(factText("parking", 1)).toBe("1 vaga");
+    expect(factText("parking", 2)).toBe("2 vagas");
+    expect(factText("parking", 0)).toBe("nenhuma vaga de garagem");
   });
 });

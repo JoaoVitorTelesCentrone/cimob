@@ -70,6 +70,9 @@ async function snapshot(tx: Tx, m: NewMessage, leadId: string, state: FlowState,
       unit_code: string | null;
       unit_price: string | null;
       unit_status: UnitInfo["status"] | null;
+      unit_area_m2: string | null;
+      unit_bedrooms: number | null;
+      unit_parking: number | null;
       org_name: string;
       privacy_url: string | null;
       qualify_timeframe: Criteria["timeframe"];
@@ -78,6 +81,7 @@ async function snapshot(tx: Tx, m: NewMessage, leadId: string, state: FlowState,
   >`
     select l.name, l.intent, l.budget_range, l.timeframe, l.wants_visit,
            u.code as unit_code, u.price as unit_price, u.status::text as unit_status,
+           u.area_m2 as unit_area_m2, u.bedrooms as unit_bedrooms, u.parking as unit_parking,
            o.name as org_name, o.brand->>'privacyUrl' as privacy_url,
            o.qualify_timeframe, o.qualify_price_share
     from leads l
@@ -101,6 +105,9 @@ async function snapshot(tx: Tx, m: NewMessage, leadId: string, state: FlowState,
             code: row.unit_code,
             price: row.unit_price === null ? null : Number(row.unit_price),
             status: row.unit_status,
+            areaM2: row.unit_area_m2 === null ? null : Number(row.unit_area_m2),
+            bedrooms: row.unit_bedrooms,
+            parking: row.unit_parking,
           }
         : null,
     org: {

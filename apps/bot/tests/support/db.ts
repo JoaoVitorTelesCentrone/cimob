@@ -172,6 +172,17 @@ export class BotTestDb {
                            ${status}::unit_status, true)`;
   }
 
+  /** Preenche a ficha da unidade (área, quartos, vagas); nulo deixa o campo vazio. */
+  async unitFacts(
+    org: string,
+    code: string,
+    facts: { areaM2: number | null; bedrooms: number | null; parking: number | null },
+  ): Promise<void> {
+    await this.sql`update units set area_m2 = ${facts.areaM2}, bedrooms = ${facts.bedrooms},
+                     parking = ${facts.parking}
+                   where organization_id = ${this.orgId(org)} and code = ${code}`;
+  }
+
   async leadByPhone(org: string, phone: string) {
     const [row] = await this.sql<
       {
