@@ -197,6 +197,20 @@
       "when": 1794615187781,
       "tag": "0027_unidade_colunas",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1794615693768,
+      "tag": "0028_organic_black_crow",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1794615700394,
+      "tag": "0029_ficha_do_lead",
+      "breakpoints": true
     }
   ]
 }

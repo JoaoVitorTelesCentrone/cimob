@@ -9,6 +9,8 @@ import { STAGES, STAGE_LABEL } from "@/lib/leads/stages";
 import { currentDecision } from "@/lib/org";
 import { canManageTeam } from "@/lib/team";
 import { LeadDrawer } from "./lead-drawer";
+import { isNextStepOverdue } from "@/lib/leads/next-step";
+import { createClient } from "@/lib/supabase/server";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -47,6 +49,7 @@ export async function LeadsView({
     leadId ? loadLead(orgId, leadId, members) : Promise.resolve(null),
     loadMyRole(orgId),
   ]);
+  const myId = leadId ? ((await (await createClient()).auth.getUser()).data.user?.id ?? null) : null;
   const now = new Date();
   const leads = applyList(all, params, now);
   const lateCount = all.filter((l) => isLate(l, now)).length;
@@ -155,6 +158,11 @@ export async function LeadsView({
                     <Link href={`/app/leads/${lead.id}${query}`} className="hover:underline">
                       {lead.name}
                     </Link>
+                    {isNextStepOverdue(lead, now) && (
+                      <span className={`${pill} ml-2 bg-warning-soft text-warning-ink`}>
+                        Próximo passo vencido
+                      </span>
+                    )}
                     {isLate(lead, now) && (
                       <span className={`${pill} ml-2 bg-danger-soft text-danger`}>Atrasado</span>
                     )}
@@ -182,6 +190,7 @@ export async function LeadsView({
           closeHref={`/app/leads${query}`}
           now={now}
           canAssign={canManageTeam(role)}
+          canWork={canManageTeam(role) || (detail?.ownerId !== null && detail?.ownerId === myId)}
           canManageData={canManageTeam(role)}
           confirmDelete={raw["excluir"] === "1"}
           dataError={raw["lgpd"] === "erro"}

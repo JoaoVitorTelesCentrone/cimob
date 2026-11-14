@@ -22,6 +22,8 @@ const LeadRecord = z.object({
   assigned_at: date,
   first_response_at: date,
   created_at: z.string().transform((v) => new Date(v)),
+  next_step: z.string().nullable(),
+  next_step_at: date,
 });
 
 const MemberRecord = z.object({
@@ -32,7 +34,8 @@ const MemberRecord = z.object({
 
 export type Member = { userId: string; name: string; role: z.infer<typeof MemberRecord>["role"] };
 
-const LEAD_COLUMNS = "id, name, phone, stage, owner_id, assigned_at, first_response_at, created_at";
+const LEAD_COLUMNS =
+  "id, name, phone, stage, owner_id, assigned_at, first_response_at, created_at, next_step, next_step_at";
 
 async function query<T>(
   run: (sb: Awaited<ReturnType<typeof createClient>>) => PromiseLike<{
@@ -71,6 +74,8 @@ function toRow(r: z.infer<typeof LeadRecord>, members: Member[]): LeadRow {
     assignedAt: r.assigned_at,
     firstResponseAt: r.first_response_at,
     createdAt: r.created_at,
+    nextStep: r.next_step,
+    nextStepAt: r.next_step_at,
   };
 }
 

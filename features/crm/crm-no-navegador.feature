@@ -110,3 +110,9 @@ Funcionalidade: CRM no navegador
     Quando "Paula" muda o preço de "E2E-301" para "812.000"
     Então "Paula" vê a mensagem "Unidade salva"
     E a lista de imóveis mostra "E2E-301" a "R$ 812.000"
+
+  Cenário: Corretora registra a 1ª resposta e o próximo passo pela ficha
+    Dado o lead "Isabela Martins" atribuído a "Marina" há 3 horas sem resposta
+    Quando "Marina" registra a 1ª resposta de "Isabela Martins" pela ficha
+    E "Marina" define o próximo passo "Enviar fotos do decorado" pela ficha
+    Então o histórico da ficha de "Isabela Martins" mostra "1ª resposta registrada" e "Próximo passo"

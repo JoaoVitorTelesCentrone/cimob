@@ -10,6 +10,9 @@ export type LeadRow = {
   assignedAt: Date | null;
   firstResponseAt: Date | null;
   createdAt: Date;
+  /** Próximo passo combinado (ficha do lead). */
+  nextStep?: string | null;
+  nextStepAt?: Date | null;
 };
 
 export type ListParams = {

@@ -7,7 +7,9 @@ import { STAGE_CLASS } from "@/lib/leads/stage-style";
 import { STAGE_LABEL } from "@/lib/leads/stages";
 import { whatsappUrl } from "@/lib/leads/whatsapp";
 import { assignByRotation } from "../../equipe/actions";
-import { deleteLeadData } from "../actions";
+import { deleteLeadData, recordFirstResponse, saveNextStep, saveVisit } from "../actions";
+import { ActionForm } from "@/components/action-form";
+import { isNextStepOverdue, toLocalInput } from "@/lib/leads/next-step";
 
 const yesNo = (v: boolean | null) => (v === null ? "—" : v ? "Sim" : "Não");
 const pill = "rounded-pill px-2 py-0.5 text-[11.5px] font-extrabold";
@@ -17,6 +19,7 @@ export function LeadDrawer({
   closeHref,
   now,
   canAssign = false,
+  canWork = false,
   canManageData = false,
   confirmDelete = false,
   dataError = false,
@@ -26,6 +29,8 @@ export function LeadDrawer({
   now: Date;
   /** Gestor vê o botão de distribuir pelo rodízio quando o lead está sem dono. */
   canAssign?: boolean;
+  /** Corretor dono ou gestor: registra 1ª resposta, próximo passo e visita. */
+  canWork?: boolean;
   /** Gestor exporta e exclui os dados do lead (LGPD). */
   canManageData?: boolean;
   /** Mostra o pedido de confirmação da exclusão (`?excluir=1`). */
@@ -85,6 +90,71 @@ export function LeadDrawer({
                 label="Atribuir pelo rodízio"
                 className="h-10 rounded-pill border border-line px-5 text-sm font-semibold"
               />
+            )}
+
+            {lead.nextStep && (
+              <p
+                className={`rounded-sm border p-3 text-sm ${
+                  isNextStepOverdue(lead, now) ? "border-warning-ink bg-warning-soft" : "border-line"
+                }`}
+              >
+                <span className="text-xs font-semibold text-ink-muted">
+                  Próximo passo{isNextStepOverdue(lead, now) ? " (vencido)" : ""}
+                </span>
+                <span className="block">
+                  {lead.nextStep}
+                  {lead.nextStepAt && ` · ${formatDateTime(lead.nextStepAt)}`}
+                </span>
+              </p>
+            )}
+
+            {canWork && (
+              <section aria-label="Atendimento" className="flex flex-col gap-3">
+                <h3 className="text-[15px] font-bold">Atendimento</h3>
+                {!lead.firstResponseAt && (
+                  <ActionButton
+                    action={recordFirstResponse}
+                    fields={{ leadId: lead.id }}
+                    label="Registrar 1ª resposta"
+                    className="h-10 rounded-pill border border-line px-5 text-sm font-semibold"
+                  />
+                )}
+                <ActionForm action={saveNextStep} submitLabel="Salvar próximo passo" label="Próximo passo">
+                  <input type="hidden" name="leadId" value={lead.id} />
+                  <label className="flex flex-col gap-1 text-sm font-semibold">
+                    Próximo passo
+                    <input
+                      name="text"
+                      maxLength={200}
+                      defaultValue={lead.nextStep ?? ""}
+                      placeholder="Ex.: Ligar para confirmar a visita"
+                      className="h-10 rounded-md border border-line bg-surface px-3 font-normal"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1 text-sm font-semibold">
+                    Quando
+                    <input
+                      name="at"
+                      type="datetime-local"
+                      defaultValue={toLocalInput(lead.nextStepAt ?? null)}
+                      className="h-10 rounded-md border border-line bg-surface px-3 font-normal"
+                    />
+                  </label>
+                </ActionForm>
+                <ActionForm action={saveVisit} submitLabel="Marcar visita" label="Data da visita">
+                  <input type="hidden" name="leadId" value={lead.id} />
+                  <label className="flex flex-col gap-1 text-sm font-semibold">
+                    Data da visita
+                    <input
+                      name="at"
+                      type="datetime-local"
+                      required
+                      defaultValue={toLocalInput(lead.visitAt)}
+                      className="h-10 rounded-md border border-line bg-surface px-3 font-normal"
+                    />
+                  </label>
+                </ActionForm>
+              </section>
             )}
 
             <dl className="grid grid-cols-2 gap-3 text-sm">

@@ -193,6 +193,9 @@ export const leads = pgTable(
     assignedAt: timestamp("assigned_at", { withTimezone: true }),
     firstResponseAt: timestamp("first_response_at", { withTimezone: true }),
     visitAt: timestamp("visit_at", { withTimezone: true }),
+    /** Próximo passo combinado pelo corretor (texto curto) e quando fazer. */
+    nextStep: text("next_step"),
+    nextStepAt: timestamp("next_step_at", { withTimezone: true }),
     lostReason: text("lost_reason"),
     isDemo: boolean("is_demo").notNull().default(false),
     createdAt: createdAt(),

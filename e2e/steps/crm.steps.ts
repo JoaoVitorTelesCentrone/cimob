@@ -425,3 +425,36 @@ Then(
     await expect(page.getByRole("row", { name: new RegExp(code) }).filter({ visible: true })).toContainText(price);
   },
 );
+
+// Ficha do lead: 1ª resposta e próximo passo.
+When(
+  "{string} registra a 1ª resposta de {string} pela ficha",
+  async ({ people, org }, name: string, lead: string) => {
+    const page = await people.page(name);
+    await page.goto(`/app/leads/${org.leadId(lead)}`);
+    const drawer = drawerOf(page);
+    await drawer.getByRole("button", { name: "Registrar 1ª resposta" }).click();
+    await expect(drawer.getByRole("button", { name: "Registrar 1ª resposta" })).toHaveCount(0);
+  },
+);
+
+When(
+  "{string} define o próximo passo {string} pela ficha",
+  async ({ people }, name: string, text: string) => {
+    const form = drawerOf(await people.page(name)).getByRole("form", { name: "Próximo passo" });
+    await form.getByLabel("Próximo passo").fill(text);
+    await form.getByRole("button", { name: "Salvar próximo passo" }).click();
+    await expect(form.getByRole("status")).toHaveText("Próximo passo salvo");
+  },
+);
+
+Then(
+  "o histórico da ficha de {string} mostra {string} e {string}",
+  async ({ people, org }, lead: string, a: string, b: string) => {
+    const page = await people.page([...org.people.keys()][1] ?? "");
+    await page.goto(`/app/leads/${org.leadId(lead)}`);
+    const drawer = drawerOf(page);
+    await expect(drawer.getByText(a)).toBeVisible();
+    await expect(drawer.locator("ol li", { hasText: b }).first()).toBeVisible();
+  },
+);
