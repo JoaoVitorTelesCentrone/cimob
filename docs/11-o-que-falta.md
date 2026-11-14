@@ -115,4 +115,6 @@ Atualizado em 14/11/2026. Fonte das tarefas: `docs/09-roadmap-tarefas.md`. Este 
 10. **Áudio original (T2.8):** o doc 04 manda guardar 30 dias no Storage; hoje não é guardado (só a transcrição), que é o mínimo pela LGPD. Manter assim ou guardar?
 
 ## 4. Próximo passo sugerido
+Roteiro do piloto, com o que precisa ser providenciado e a ordem de implantação: `docs/12-piloto.md`.
+
 Fases 1, 2 e 3 fechadas; Roadmap concluído (T4.1 a T4.6). Próximo: preparar o piloto (subir no Hetzner/Supabase/Vercel, testes com número real da Meta, OpenRouter, áudios e PDFs reais, templates de e-mail e SMTP) e as pendências desta lista. Cada tarefa numa branch `feat/...`. Antes do piloto, continuam pendentes: testar com número real da Meta (e com uma conta de anúncios real), com a chave do OpenRouter e com áudios reais, e subir no Hetzner. Pendentes: decisões 3 (rodízio vazio) e 6 (app da Meta).
