@@ -2,6 +2,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import type { TeamMember } from "@/lib/team";
 import type { DashboardLead, SpendDay } from "./dashboard";
+import { describeEvent } from "./history";
 import type { LeadRow } from "./list";
 import { STAGES } from "./stages";
 
@@ -187,7 +188,8 @@ const DetailRecord = LeadRecord.extend({
 const EventRecord = z.object({
   id: z.uuid(),
   type: z.string(),
-  data: z.unknown(),
+  data: z.record(z.string(), z.unknown()).catch({}),
+  actor_id: z.uuid().nullable(),
   created_at: z.string().transform((v) => new Date(v)),
 });
 
@@ -201,7 +203,7 @@ export type LeadDetail = LeadRow & {
   lostReason: string | null;
   isDemo: boolean;
   unitCode: string | null;
-  events: { id: string; type: string; createdAt: Date }[];
+  events: { id: string; title: string; detail: string | null; createdAt: Date }[];
 };
 
 export async function loadLead(
@@ -229,7 +231,7 @@ export async function loadLead(
     (sb) =>
       sb
         .from("lead_events")
-        .select("id, type, data, created_at")
+        .select("id, type, data, actor_id, created_at")
         .eq("lead_id", id)
         .order("created_at", { ascending: false })
         .limit(50),
@@ -247,7 +249,14 @@ export async function loadLead(
     lostReason: r.lost_reason,
     isDemo: r.is_demo,
     unitCode: r.units?.code ?? null,
-    events: events.map((e) => ({ id: e.id, type: e.type, createdAt: e.created_at })),
+    events: events.map((e) => ({
+      id: e.id,
+      ...describeEvent(
+        { type: e.type, data: e.data, actorId: e.actor_id },
+        new Map(members.map((m) => [m.userId, m.name])),
+      ),
+      createdAt: e.created_at,
+    })),
   };
 }
 

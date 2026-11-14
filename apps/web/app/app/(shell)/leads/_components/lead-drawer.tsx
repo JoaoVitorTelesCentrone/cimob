@@ -174,7 +174,10 @@ export function LeadDrawer({
                       key={e.id}
                       className="flex justify-between gap-2 border-b border-line pb-2 text-sm"
                     >
-                      <span>{e.type}</span>
+                      <span>
+                        {e.title}
+                        {e.detail && <span className="block text-xs text-ink-muted">{e.detail}</span>}
+                      </span>
                       <span className="text-ink-muted tabular-nums">
                         {formatDateTime(e.createdAt)}
                       </span>
