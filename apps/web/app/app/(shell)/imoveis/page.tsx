@@ -132,7 +132,18 @@ async function InventoryView({ searchParams }: Props) {
                 const f = formatUnit(u);
                 return (
                   <tr key={u.id} className="border-b border-line last:border-0">
-                    <td className={`${td} font-semibold`}>{u.code}</td>
+                    <td className={`${td} font-semibold`}>
+                      {u.code}
+                      {editable && (
+                        <Link
+                          href={`/app/imoveis/unidade/${u.id}`}
+                          aria-label={`Editar ${u.code}`}
+                          className="ml-2 text-xs font-normal underline"
+                        >
+                          Editar
+                        </Link>
+                      )}
+                    </td>
                     <td className={td}>{f.floor}</td>
                     <td className={`${td} ${num}`}>{f.area}</td>
                     <td className={`${td} ${num}`}>{u.bedrooms ?? "—"}</td>

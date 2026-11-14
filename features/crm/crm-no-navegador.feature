@@ -104,3 +104,9 @@ Funcionalidade: CRM no navegador
   Cenário: Corretora não vê o relatório mensal
     Quando "Marina" abre "/app/relatorios"
     Então "Marina" vê a mensagem "Só o gestor da imobiliária vê o relatório mensal."
+
+  Cenário: Gestora corrige o preço de uma unidade
+    Dado a unidade "E2E-301" disponível
+    Quando "Paula" muda o preço de "E2E-301" para "812.000"
+    Então "Paula" vê a mensagem "Unidade salva"
+    E a lista de imóveis mostra "E2E-301" a "R$ 812.000"

@@ -403,3 +403,25 @@ Then("o relatório por corretor mostra {string}", async ({ people, org }, agent:
   const section = (await people.page(admin ?? "")).getByRole("region", { name: "Por corretor" });
   await expect(section.getByRole("row", { name: new RegExp(agent) })).toHaveCount(1);
 });
+
+// Editar unidade.
+When(
+  "{string} muda o preço de {string} para {string}",
+  async ({ people, org }, name: string, code: string, price: string) => {
+    const page = await people.page(name);
+    await page.goto(`/app/imoveis/unidade/${org.units.get(code) ?? ""}`);
+    const form = page.getByRole("form", { name: "Ficha da unidade" });
+    await form.getByLabel("Preço (R$)").fill(price);
+    await form.getByRole("button", { name: "Salvar unidade" }).click();
+  },
+);
+
+Then(
+  "a lista de imóveis mostra {string} a {string}",
+  async ({ people, org }, code: string, price: string) => {
+    const [admin] = [...org.people.keys()];
+    const page = await people.page(admin ?? "");
+    await page.goto("/app/imoveis");
+    await expect(page.getByRole("row", { name: new RegExp(code) }).filter({ visible: true })).toContainText(price);
+  },
+);
