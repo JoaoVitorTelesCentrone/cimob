@@ -107,3 +107,36 @@ Funcionalidade: Entrada de imobiliária e da equipe
     Quando "Marina" tenta cancelar o convite de "rafael@exemplo.com"
     Então o banco recusa
     E o convite de "rafael@exemplo.com" continua pendente
+
+  Cenário: Admin da plataforma define o domínio próprio e o site passa a responder por ele
+    Quando "Carlos" define o domínio da "Horizonte" como "WWW.HorizonteImoveis.com.br"
+    Então o domínio da "Horizonte" é "www.horizonteimoveis.com.br"
+    E o site encontrado pelo domínio "www.horizonteimoveis.com.br" é o da "Horizonte"
+
+  Cenário: Domínio vazio tira o domínio próprio
+    Dado "Carlos" definiu o domínio da "Horizonte" como "horizonteimoveis.com.br"
+    Quando "Carlos" define o domínio da "Horizonte" como ""
+    Então a "Horizonte" fica sem domínio próprio
+
+  Cenário: Gestora não define o domínio próprio
+    Quando "Paula" define o domínio da "Horizonte" como "horizonteimoveis.com.br"
+    Então o banco recusa por falta de permissão
+    E a "Horizonte" fica sem domínio próprio
+
+  Cenário: Domínio de outra imobiliária é recusado
+    Dado "Carlos" definiu o domínio da "Alfa" como "alfaimoveis.com.br"
+    Quando "Carlos" define o domínio da "Horizonte" como "alfaimoveis.com.br"
+    Então o banco recusa por domínio repetido
+
+  Esquema do Cenário: Domínio inválido ou da plataforma é recusado
+    Quando "Carlos" define o domínio da "Horizonte" como "<domínio>"
+    Então o banco recusa por domínio inválido
+
+    Exemplos:
+      | domínio                      |
+      | http://horizonte.com.br      |
+      | horizonte imoveis.com.br     |
+      | horizonte                    |
+      | horizonte.c1imob.com.br      |
+      | c1imob.com.br                |
+      | localhost                    |

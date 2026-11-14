@@ -515,4 +515,90 @@ describeFeature(feature, ({ Background, Scenario: Sc, ScenarioOutline, AfterEach
       expect(rows).toHaveLength(1);
     });
   });
+
+  // Domínio próprio (só a Center One).
+  const setDomain = (user: string, org: string, domain: string) =>
+    attempt(user, (c) => c`select public.set_custom_domain(${s.orgId(org)}, ${domain})`);
+  const domainOf = async (org: string) => {
+    const [row] = await s.conn<{ custom_domain: string | null }[]>`
+      select custom_domain from organizations where id = ${s.orgId(org)}`;
+    return row?.custom_domain ?? null;
+  };
+  type DomainStep = (
+    t: string,
+    f: (c: unknown, u: string, o: string, d: string) => Promise<void>,
+  ) => void;
+  const defineDomain = (step: DomainStep) => {
+    step(
+      "{string} define o domínio da {string} como {string}",
+      async (_ctx, user: string, org: string, domain: string) => {
+        await setDomain(user, org, domain);
+      },
+    );
+  };
+  const definedDomain = (step: DomainStep) => {
+    step(
+      "{string} definiu o domínio da {string} como {string}",
+      async (_ctx, user: string, org: string, domain: string) => {
+        await setDomain(user, org, domain);
+        expect(dbError).toBeNull();
+      },
+    );
+  };
+  const noDomain = (step: (t: string, f: (c: unknown, o: string) => Promise<void>) => void) => {
+    step("a {string} fica sem domínio próprio", async (_ctx, org: string) => {
+      expect(await domainOf(org)).toBeNull();
+    });
+  };
+
+  Sc(
+    "Admin da plataforma define o domínio próprio e o site passa a responder por ele",
+    ({ When, Then, And }) => {
+      defineDomain(When);
+      Then("o domínio da {string} é {string}", async (_ctx, org: string, domain: string) => {
+        expect(dbError).toBeNull();
+        expect(await domainOf(org)).toBe(domain);
+      });
+      And(
+        "o site encontrado pelo domínio {string} é o da {string}",
+        async (_ctx, domain: string, org: string) => {
+          // O site resolve o tenant como anônimo, pela função pública.
+          const [row] = await s.as(
+            null,
+            (c) => c<{ id: string }[]>`select id from public.resolve_tenant(null, ${domain})`,
+          );
+          expect(row?.id).toBe(s.orgId(org));
+        },
+      );
+    },
+  );
+
+  Sc("Domínio vazio tira o domínio próprio", ({ Given, When, Then }) => {
+    definedDomain(Given);
+    defineDomain(When);
+    noDomain(Then);
+  });
+
+  Sc("Gestora não define o domínio próprio", ({ When, Then, And }) => {
+    defineDomain(When);
+    Then("o banco recusa por falta de permissão", () => {
+      expect(dbError).toMatch(/not allowed/);
+    });
+    noDomain(And);
+  });
+
+  Sc("Domínio de outra imobiliária é recusado", ({ Given, When, Then }) => {
+    definedDomain(Given);
+    defineDomain(When);
+    Then("o banco recusa por domínio repetido", () => {
+      expect(dbError).toMatch(/duplicate key|organizations_custom_domain/);
+    });
+  });
+
+  ScenarioOutline("Domínio inválido ou da plataforma é recusado", ({ When, Then }) => {
+    defineDomain(When);
+    Then("o banco recusa por domínio inválido", () => {
+      expect(dbError).toMatch(/invalid domain/);
+    });
+  });
 });

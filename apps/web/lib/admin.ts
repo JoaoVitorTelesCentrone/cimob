@@ -24,6 +24,7 @@ const Settings = z.object({
   qualify_timeframe: z.string(),
   qualify_price_share: z.union([z.string(), z.number()]),
   business_hours: z.unknown(),
+  custom_domain: z.string().nullable(),
 });
 export type OrgSettings = z.infer<typeof Settings>;
 
@@ -32,7 +33,9 @@ export async function loadOrgSettings(organizationId: string): Promise<OrgSettin
     await sb()
   )
     .from("organizations")
-    .select("name, slug, brand, qualify_timeframe, qualify_price_share, business_hours")
+    .select(
+      "name, slug, brand, qualify_timeframe, qualify_price_share, business_hours, custom_domain",
+    )
     .eq("id", organizationId)
     .maybeSingle();
   const parsed = Settings.safeParse(data);

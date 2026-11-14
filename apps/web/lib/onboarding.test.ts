@@ -4,6 +4,7 @@ import {
   criteriaForm,
   parseAdsAccount,
   parseBrand,
+  parseCustomDomain,
   parseBusinessHoursForm,
   businessHoursForm,
   parseCriteria,
@@ -243,5 +244,38 @@ describe("parseBusinessHoursForm e businessHoursForm", () => {
       open: "09:00",
       close: "18:00",
     });
+  });
+});
+
+describe("parseCustomDomain", () => {
+  it("minúsculas, sem espaço; vazio tira o domínio", () => {
+    expect(parseCustomDomain(" WWW.Horizonte.com.br ")).toEqual({
+      ok: true,
+      value: "www.horizonte.com.br",
+    });
+    expect(parseCustomDomain("  ")).toEqual({ ok: true, value: "" });
+  });
+
+  it("aceita colado com https:// e barra no fim (tira os dois)", () => {
+    expect(parseCustomDomain("https://horizonte.com.br/")).toEqual({
+      ok: true,
+      value: "horizonte.com.br",
+    });
+  });
+
+  it("recusa formato inválido e domínio da plataforma", () => {
+    for (const raw of [
+      "horizonte",
+      "horizonte imoveis.com.br",
+      "a.c1imob.com.br",
+      "c1imob.com.br",
+      "localhost",
+      "horizonte.com.br/site",
+    ]) {
+      expect(parseCustomDomain(raw)).toEqual({
+        ok: false,
+        message: "Use um domínio como imobiliaria.com.br (fora de c1imob.com.br).",
+      });
+    }
   });
 });

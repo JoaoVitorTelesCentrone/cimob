@@ -7,6 +7,7 @@ import {
   parseBrand,
   parseBusinessHoursForm,
   parseCriteria,
+  parseCustomDomain,
   parseLogo,
   parsePhoneNumberId,
 } from "@/lib/onboarding";
@@ -141,6 +142,32 @@ export async function saveAdsAccount(
   }
   revalidatePath("/app/config");
   return { ok: true, message: "Conta de anúncios salva" };
+}
+
+/** Domínio próprio do site (só a Center One). Vazio tira o domínio. */
+export async function saveCustomDomain(
+  _prev: ActionResult | null,
+  form: FormData,
+): Promise<ActionResult> {
+  const domain = parseCustomDomain(value(form, "domain"));
+  if (!domain.ok) return { ok: false, message: domain.message };
+  const id = await orgId();
+  if (!id) return { ok: false, message: "Escolha uma imobiliária" };
+
+  const supabase = await createClient();
+  const result = await supabase.rpc("set_custom_domain", { p_org: id, p_domain: domain.value });
+  if (result.error) {
+    return result.error.code === "23505"
+      ? { ok: false, message: "Esse domínio já está em outra imobiliária" }
+      : { ok: false, message: "Só a Center One configura o domínio" };
+  }
+  revalidatePath("/app/config");
+  return {
+    ok: true,
+    message: domain.value
+      ? "Domínio salvo. Aponte o DNS para a plataforma; pode levar até 1 minuto para valer."
+      : "Domínio removido",
+  };
 }
 
 /** Grava o brand com uma mudança (lido do banco para não apagar o resto). */

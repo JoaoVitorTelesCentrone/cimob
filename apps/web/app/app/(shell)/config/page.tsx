@@ -13,6 +13,7 @@ import {
   saveBrand,
   saveBusinessHours,
   saveCriteria,
+  saveCustomDomain,
   saveWhatsappAccount,
   uploadLogo,
 } from "./actions";
@@ -235,10 +236,10 @@ async function Config() {
       )}
 
       <section className={panel}>
-        <h2 className={heading}>WhatsApp do bot e anúncios</h2>
+        <h2 className={heading}>WhatsApp do bot, anúncios e domínio</h2>
         <p className={hint}>
           {platform
-            ? "Só a Center One configura. O token vai para o cofre e não aparece de novo; deixe vazio para manter o atual."
+            ? "Só a Center One configura. O token vai para o cofre e não aparece de novo; deixe vazio para manter o atual. O domínio próprio precisa do DNS apontado para a plataforma."
             : "Configurado pela Center One."}
         </p>
         <dl className="mb-3 grid gap-2 text-sm sm:grid-cols-2">
@@ -249,6 +250,10 @@ async function Config() {
                 ? `${technical.phoneNumberId} · ${tokenStatus(technical.whatsappToken)}`
                 : "Não configurado"}
             </dd>
+          </div>
+          <div>
+            <dt className="text-ink-muted">Domínio próprio do site</dt>
+            <dd>{settings?.custom_domain ?? "Não configurado"}</dd>
           </div>
           <div>
             <dt className="text-ink-muted">Conta de anúncios</dt>
@@ -296,6 +301,21 @@ async function Config() {
               <label className={field}>
                 Token da Marketing API
                 <input name="token" type="password" autoComplete="off" className={input} />
+              </label>
+            </ActionForm>
+            <ActionForm
+              action={saveCustomDomain}
+              submitLabel="Salvar domínio"
+              label="Domínio próprio"
+            >
+              <label className={field}>
+                Domínio próprio (vazio tira)
+                <input
+                  name="domain"
+                  defaultValue={settings?.custom_domain ?? ""}
+                  placeholder="imobiliaria.com.br"
+                  className={input}
+                />
               </label>
             </ActionForm>
           </div>

@@ -187,6 +187,25 @@ export function parseAdsAccount(raw: string): Parsed<string> {
     : fail("A conta de anúncios é act_ seguido de números.");
 }
 
+const DOMAIN = /^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
+/** Mesma lista de DEFAULT_ROOT_DOMAINS (lib/tenant/host.ts) e de `set_custom_domain` (migração 0035). */
+const PLATFORM_DOMAINS = ["c1imob.com.br", "localhost"];
+
+/** Domínio próprio do site. Vazio tira o domínio; "https://" e a barra final colados saem. */
+export function parseCustomDomain(raw: string): Parsed<string> {
+  const value = raw
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/\/$/, "");
+  if (value === "") return { ok: true, value };
+  const platform = PLATFORM_DOMAINS.some((p) => value === p || value.endsWith(`.${p}`));
+  if (!DOMAIN.test(value) || value.length > 253 || platform) {
+    return fail("Use um domínio como imobiliaria.com.br (fora de c1imob.com.br).");
+  }
+  return { ok: true, value };
+}
+
 const LOGO_TYPES: Record<string, string> = {
   "image/png": "png",
   "image/jpeg": "jpg",

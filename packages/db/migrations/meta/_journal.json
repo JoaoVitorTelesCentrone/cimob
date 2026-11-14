@@ -246,6 +246,13 @@
       "when": 1794669257302,
       "tag": "0034_jazzy_shatterstar",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1794673839524,
+      "tag": "0035_dominio_proprio",
+      "breakpoints": true
     }
   ]
 }
