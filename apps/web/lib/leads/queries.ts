@@ -1,3 +1,4 @@
+import { parseBusinessHours, type BusinessHours } from "@c1imob/core";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import type { TeamMember } from "@/lib/team";
@@ -301,4 +302,15 @@ export async function loadMyRole(organizationId: string): Promise<Member["role"]
     (sb) => sb.rpc("role_in", { org: organizationId }),
     MemberRecord.shape.role.nullable(),
   );
+}
+
+/** Horário de atendimento da imobiliária (nulo = tempo corrido). */
+export async function loadBusinessHours(organizationId: string): Promise<BusinessHours | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("organizations")
+    .select("business_hours")
+    .eq("id", organizationId)
+    .maybeSingle();
+  return parseBusinessHours(data?.business_hours ?? null);
 }

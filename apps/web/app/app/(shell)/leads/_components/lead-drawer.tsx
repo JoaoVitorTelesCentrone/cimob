@@ -1,3 +1,4 @@
+import type { BusinessHours } from "@c1imob/core";
 import Link from "next/link";
 import { ActionButton } from "@/components/action-button";
 import { formatDateTime, formatPhone } from "@/lib/format";
@@ -18,6 +19,7 @@ export function LeadDrawer({
   lead,
   closeHref,
   now,
+  hours = null,
   canAssign = false,
   canWork = false,
   canManageData = false,
@@ -27,6 +29,8 @@ export function LeadDrawer({
   lead: LeadDetail | null;
   closeHref: string;
   now: Date;
+  /** Horário de atendimento: o atraso conta só dentro dele (nulo = tempo corrido). */
+  hours?: BusinessHours | null;
   /** Gestor vê o botão de distribuir pelo rodízio quando o lead está sem dono. */
   canAssign?: boolean;
   /** Corretor dono ou gestor: registra 1ª resposta, próximo passo e visita. */
@@ -66,7 +70,7 @@ export function LeadDrawer({
               <span className={`${pill} ${STAGE_CLASS[lead.stage]}`}>
                 {STAGE_LABEL[lead.stage]}
               </span>
-              {isLate(lead, now) && (
+              {isLate(lead, now, hours) && (
                 <span className={`${pill} bg-danger-soft text-danger`}>Atrasado</span>
               )}
               {lead.isDemo && (
@@ -95,7 +99,9 @@ export function LeadDrawer({
             {lead.nextStep && (
               <p
                 className={`rounded-sm border p-3 text-sm ${
-                  isNextStepOverdue(lead, now) ? "border-warning-ink bg-warning-soft" : "border-line"
+                  isNextStepOverdue(lead, now)
+                    ? "border-warning-ink bg-warning-soft"
+                    : "border-line"
                 }`}
               >
                 <span className="text-xs font-semibold text-ink-muted">
@@ -119,7 +125,11 @@ export function LeadDrawer({
                     className="h-10 rounded-pill border border-line px-5 text-sm font-semibold"
                   />
                 )}
-                <ActionForm action={saveNextStep} submitLabel="Salvar próximo passo" label="Próximo passo">
+                <ActionForm
+                  action={saveNextStep}
+                  submitLabel="Salvar próximo passo"
+                  label="Próximo passo"
+                >
                   <input type="hidden" name="leadId" value={lead.id} />
                   <label className="flex flex-col gap-1 text-sm font-semibold">
                     Próximo passo
@@ -205,11 +215,15 @@ export function LeadDrawer({
                   </p>
                 )}
                 {confirmDelete && (
-                  <div role="alertdialog" aria-label="Confirmar exclusão" className="flex flex-col gap-3 rounded-sm bg-danger-soft p-4 text-sm text-danger">
+                  <div
+                    role="alertdialog"
+                    aria-label="Confirmar exclusão"
+                    className="flex flex-col gap-3 rounded-sm bg-danger-soft p-4 text-sm text-danger"
+                  >
                     <p>
-                      <b>A exclusão não pode ser desfeita.</b> Apaga a ficha, a conversa no WhatsApp,
-                      o histórico, o consentimento e o resumo enviado ao corretor. Fica só um registro
-                      anônimo de que a exclusão foi feita.
+                      <b>A exclusão não pode ser desfeita.</b> Apaga a ficha, a conversa no
+                      WhatsApp, o histórico, o consentimento e o resumo enviado ao corretor. Fica só
+                      um registro anônimo de que a exclusão foi feita.
                     </p>
                     <div className="flex flex-wrap gap-2">
                       <form action={deleteLeadData}>
@@ -246,7 +260,9 @@ export function LeadDrawer({
                     >
                       <span>
                         {e.title}
-                        {e.detail && <span className="block text-xs text-ink-muted">{e.detail}</span>}
+                        {e.detail && (
+                          <span className="block text-xs text-ink-muted">{e.detail}</span>
+                        )}
                       </span>
                       <span className="text-ink-muted tabular-nums">
                         {formatDateTime(e.createdAt)}

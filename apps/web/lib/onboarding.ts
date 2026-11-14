@@ -1,3 +1,4 @@
+import { parseBusinessHours, type BusinessHours } from "@c1imob/core";
 import { parseEmail } from "./email";
 import { parseWhatsapp } from "./team";
 
@@ -7,8 +8,19 @@ const fail = (message: string) => ({ ok: false, message }) as const;
 
 /** Endereços que colidem com rotas da plataforma. Mesma lista de `create_organization` (migração 0023). */
 export const RESERVED_SLUGS = new Set([
-  "app", "login", "auth", "api", "www", "dev", "admin", "static", "assets", "site", "mail",
-  "center-one", "c1imob",
+  "app",
+  "login",
+  "auth",
+  "api",
+  "www",
+  "dev",
+  "admin",
+  "static",
+  "assets",
+  "site",
+  "mail",
+  "center-one",
+  "c1imob",
 ]);
 const SLUG = /^[a-z0-9]([a-z0-9-]{0,38}[a-z0-9])?$/;
 
@@ -75,13 +87,18 @@ export function parseBrand(raw: Record<string, unknown>): Parsed<BrandPatch> {
   }
   return {
     ok: true,
-    value: { color, creci: creci || null, whatsapp: whatsapp.whatsapp, privacyUrl: privacy || null },
+    value: {
+      color,
+      creci: creci || null,
+      whatsapp: whatsapp.whatsapp,
+      privacyUrl: privacy || null,
+    },
   };
 }
 
 /** Valores atuais da marca para preencher o formulário. */
 export function brandForm(brand: Record<string, unknown>): Record<keyof BrandPatch, string> {
-  const str = (k: string) => (typeof brand[k] === "string" ? (brand[k]) : "");
+  const str = (k: string) => (typeof brand[k] === "string" ? brand[k] : "");
   return {
     color: str("color") || "#155F4B",
     creci: str("creci"),
@@ -113,6 +130,49 @@ export function criteriaForm(timeframe: string, priceShare: string | number) {
   return { timeframe, priceShare: Math.round(Number(priceShare) * 100) };
 }
 
+/** Dias da semana do formulário de horário (0 = domingo), na ordem da semana útil. */
+export const WEEKDAYS = [
+  { value: 1, label: "Seg" },
+  { value: 2, label: "Ter" },
+  { value: 3, label: "Qua" },
+  { value: 4, label: "Qui" },
+  { value: 5, label: "Sex" },
+  { value: 6, label: "Sáb" },
+  { value: 0, label: "Dom" },
+] as const;
+
+const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
+const DEFAULT_HOURS: BusinessHours = { days: [1, 2, 3, 4, 5], open: "09:00", close: "18:00" };
+
+/**
+ * Horário de atendimento do formulário de configuração. `enabled: "off"` grava nulo (tempo
+ * corrido); `days` vem dos checkboxes (0 = domingo … 6 = sábado).
+ */
+export function parseBusinessHoursForm(raw: {
+  enabled?: unknown;
+  days: readonly unknown[];
+  open: unknown;
+  close: unknown;
+}): Parsed<BusinessHours | null> {
+  if (raw.enabled === "off") return { ok: true, value: null };
+  const days = raw.days
+    .map((d) => Number(d))
+    .filter((d) => Number.isInteger(d) && d >= 0 && d <= 6);
+  if (days.length === 0) return fail("Escolha ao menos um dia.");
+  const open = text(raw.open);
+  const close = text(raw.close);
+  if (!HHMM.test(open) || !HHMM.test(close)) return fail("Use o formato HH:MM.");
+  const hours = parseBusinessHours({ days, open, close });
+  if (!hours) return fail("O fechamento precisa ser depois da abertura.");
+  return { ok: true, value: hours };
+}
+
+/** Valores iniciais do formulário: o horário salvo, ou seg–sex 9h–18h desligado. */
+export function businessHoursForm(saved: unknown) {
+  const hours = parseBusinessHours(saved);
+  return { enabled: hours !== null, ...(hours ?? DEFAULT_HOURS) };
+}
+
 export function parsePhoneNumberId(raw: string): Parsed<string> {
   const value = raw.trim();
   return /^\d{6,20}$/.test(value)
@@ -127,11 +187,18 @@ export function parseAdsAccount(raw: string): Parsed<string> {
     : fail("A conta de anúncios é act_ seguido de números.");
 }
 
-const LOGO_TYPES: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
+const LOGO_TYPES: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+};
 export const MAX_LOGO_BYTES = 1_048_576;
 
 /** Logo da marca: PNG, JPEG ou WebP até 1 MB (sem SVG, que pode carregar script). */
-export function parseLogo(file: { type: string; size: number }): Parsed<{ ext: string; type: string }> {
+export function parseLogo(file: {
+  type: string;
+  size: number;
+}): Parsed<{ ext: string; type: string }> {
   if (file.size <= 0) return fail("Escolha a imagem do logo.");
   const ext = LOGO_TYPES[file.type];
   if (!ext) return fail("Use PNG, JPG ou WebP.");

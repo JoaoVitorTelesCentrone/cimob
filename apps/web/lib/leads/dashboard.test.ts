@@ -177,6 +177,24 @@ describe("lateAlert", () => {
   });
 });
 
+describe("horário de atendimento no painel", () => {
+  /** Quinta (dia de `now`) fechada: 3 h corridas valem zero. */
+  const NO_THURSDAY = { days: [1, 2, 3, 5], open: "09:00", close: "18:00" };
+  const waiting = () =>
+    lead({ name: "Caio", ownerId: "u-ana", assignedAt: new Date(now.getTime() - 3 * HOUR) });
+
+  it("alerta e atrasados por corretor contam só o tempo dentro do horário", () => {
+    const d = buildDashboard([waiting()], members, 30, now, [], NO_THURSDAY);
+    expect(d.lateAlert).toBeNull();
+    expect(d.byAgent.find((r) => r.name === "Ana")?.late).toBe(0);
+    expect(lateAlert([waiting()], now, NO_THURSDAY)).toBeNull();
+  });
+
+  it("sem horário, como antes", () => {
+    expect(buildDashboard([waiting()], members, 30, now).lateAlert?.count).toBe(1);
+  });
+});
+
 describe("formatBRL", () => {
   it("formata em reais com centavos e separador de milhar", () => {
     expect(formatBRL(800)).toBe("R$ 800,00");

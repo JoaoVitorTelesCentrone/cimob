@@ -45,6 +45,24 @@ describe("buildBoard", () => {
   });
 });
 
+describe("buildBoard com horário de atendimento", () => {
+  it("fora do horário o atrasado não passa à frente", () => {
+    const NO_THURSDAY = { days: [1, 2, 3, 5], open: "09:00", close: "18:00" };
+    const old = lead({
+      id: "old",
+      assignedAt: new Date(now.getTime() - 3_600_000 * 3),
+      createdAt: new Date(now.getTime() - 3_600_000 * 5),
+    });
+    const fresh = lead({ id: "new", ownerId: null, assignedAt: null, createdAt: now });
+    const col = (hours?: typeof NO_THURSDAY) =>
+      buildBoard([old, fresh], now, hours)
+        .find((c) => c.stage === "new")
+        ?.leads.map((l) => l.id);
+    expect(col()).toEqual(["old", "new"]);
+    expect(col(NO_THURSDAY)).toEqual(["new", "old"]);
+  });
+});
+
 describe("planMove", () => {
   it("mesma etapa não faz nada", () => {
     expect(planMove({ current: "new", expected: "new", to: "new" })).toEqual({ kind: "noop" });

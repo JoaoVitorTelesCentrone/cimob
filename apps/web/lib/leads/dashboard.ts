@@ -1,3 +1,4 @@
+import type { BusinessHours } from "@c1imob/core";
 import { firstResponseMinutes } from "./first-response";
 import { isLate, type LeadRow } from "./list";
 import type { Member } from "./queries";
@@ -211,6 +212,7 @@ export function agentStats(
   inPeriod: readonly DashboardLead[],
   all: readonly DashboardLead[],
   now: Date,
+  hours: BusinessHours | null = null,
 ): AgentRow {
   const mine = inPeriod.filter((l) => l.ownerId === member.userId);
   return {
@@ -219,7 +221,7 @@ export function agentStats(
     firstResponse: formatMinutes(medianResponse(mine)),
     visits: mine.filter((l) => reached(l, "visit_done")).length,
     proposals: mine.filter((l) => reached(l, "proposal")).length,
-    late: all.filter((l) => l.ownerId === member.userId && isLate(l, now)).length,
+    late: all.filter((l) => l.ownerId === member.userId && isLate(l, now, hours)).length,
   };
 }
 
@@ -245,18 +247,23 @@ function byAgent(
   all: readonly DashboardLead[],
   members: readonly Member[],
   now: Date,
+  hours: BusinessHours | null,
 ): AgentRow[] {
   return members
-    .map((m) => ({ role: m.role, row: agentStats(m, inPeriod, all, now) }))
+    .map((m) => ({ role: m.role, row: agentStats(m, inPeriod, all, now, hours) }))
     .filter(({ role, row }) => role === "agent" || row.leads > 0 || row.late > 0)
     .map(({ row }) => row)
     .sort(byName);
 }
 
 /** Alerta de atraso: considera todos os leads visíveis, não só os do período. */
-export function lateAlert(leads: readonly LeadRow[], now: Date): LateAlert | null {
+export function lateAlert(
+  leads: readonly LeadRow[],
+  now: Date,
+  hours: BusinessHours | null = null,
+): LateAlert | null {
   const late = leads
-    .filter((l) => isLate(l, now))
+    .filter((l) => isLate(l, now, hours))
     .sort((a, b) => (a.assignedAt?.getTime() ?? 0) - (b.assignedAt?.getTime() ?? 0));
   if (late.length === 0) return null;
 
@@ -276,6 +283,7 @@ export function buildDashboard(
   period: Period,
   now: Date,
   spend: readonly SpendDay[] = [],
+  hours: BusinessHours | null = null,
 ): Dashboard {
   const inPeriod = inPeriodOf(leads, period, now);
   const cost = adCost(inPeriod, spendInPeriod(spend, period, now));
@@ -285,7 +293,7 @@ export function buildDashboard(
     costKpis: costKpis(cost),
     funnel: funnel(inPeriod),
     bySource: bySource(inPeriod, cost),
-    byAgent: byAgent(inPeriod, leads, members, now),
-    lateAlert: lateAlert(leads, now),
+    byAgent: byAgent(inPeriod, leads, members, now, hours),
+    lateAlert: lateAlert(leads, now, hours),
   };
 }

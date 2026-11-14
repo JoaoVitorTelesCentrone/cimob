@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { RealtimeRefresh } from "@/components/realtime-refresh";
 import { buildBoard } from "@/lib/leads/board";
 import { isLate } from "@/lib/leads/list";
-import { loadLeads, loadMembers } from "@/lib/leads/queries";
+import { loadBusinessHours, loadLeads, loadMembers } from "@/lib/leads/queries";
 import { currentDecision } from "@/lib/org";
 import { BoardClient, type ColumnData } from "./board-client";
 
@@ -24,17 +24,17 @@ async function Board() {
   const orgId = decision.organization.id;
 
   const members = await loadMembers(orgId);
-  const leads = await loadLeads(orgId, members);
+  const [leads, hours] = await Promise.all([loadLeads(orgId, members), loadBusinessHours(orgId)]);
   const now = new Date();
 
-  const columns: ColumnData[] = buildBoard(leads, now).map((col) => ({
+  const columns: ColumnData[] = buildBoard(leads, now, hours).map((col) => ({
     stage: col.stage,
     label: col.label,
     cards: col.leads.map((l) => ({
       id: l.id,
       name: l.name,
       ownerName: l.ownerName,
-      late: isLate(l, now),
+      late: isLate(l, now, hours),
       stage: l.stage,
     })),
   }));

@@ -1,3 +1,4 @@
+import { businessMsBetween, type BusinessHours } from "@c1imob/core";
 import { isStage, type Stage } from "./stages";
 
 export type LeadRow = {
@@ -26,11 +27,14 @@ export type ListParams = {
 const LATE_AFTER_MS = 2 * 60 * 60 * 1000;
 const MAX_QUERY = 100;
 
-/** Regra do doc 06: dono definido, sem 1ª resposta, atribuído há mais de 2 h, fora de ganho/perdido. */
-export function isLate(lead: LeadRow, now: Date): boolean {
+/**
+ * Regra do doc 06: dono definido, sem 1ª resposta, atribuído há mais de 2 h, fora de ganho/perdido.
+ * Com horário de atendimento, as 2 h contam só dentro do horário; sem ele, tempo corrido.
+ */
+export function isLate(lead: LeadRow, now: Date, hours: BusinessHours | null = null): boolean {
   if (!lead.ownerId || !lead.assignedAt || lead.firstResponseAt) return false;
   if (lead.stage === "won" || lead.stage === "lost") return false;
-  return now.getTime() - lead.assignedAt.getTime() > LATE_AFTER_MS;
+  return businessMsBetween(lead.assignedAt, now, hours) > LATE_AFTER_MS;
 }
 
 type RawParams = Record<string, string | string[] | undefined>;
@@ -63,7 +67,12 @@ function matches(lead: LeadRow, q: string): boolean {
 }
 
 /** Filtra e ordena: atrasados sempre no topo; depois por nome ou pelos mais recentes. */
-export function applyList(leads: readonly LeadRow[], p: ListParams, now: Date): LeadRow[] {
+export function applyList(
+  leads: readonly LeadRow[],
+  p: ListParams,
+  now: Date,
+  hours: BusinessHours | null = null,
+): LeadRow[] {
   const byName = (a: LeadRow, b: LeadRow) => fold(a.name).localeCompare(fold(b.name), "pt-BR");
   const byRecent = (a: LeadRow, b: LeadRow) => b.createdAt.getTime() - a.createdAt.getTime();
 
@@ -71,8 +80,8 @@ export function applyList(leads: readonly LeadRow[], p: ListParams, now: Date): 
     .filter((l) => matches(l, p.q))
     .filter((l) => !p.stage || l.stage === p.stage)
     .filter((l) => !p.owner || l.ownerId === p.owner)
-    .filter((l) => !p.late || isLate(l, now))
-    .map((l) => ({ lead: l, late: isLate(l, now) }))
+    .filter((l) => !p.late || isLate(l, now, hours))
+    .map((l) => ({ lead: l, late: isLate(l, now, hours) }))
     .sort((a, b) => {
       if (a.late !== b.late) return a.late ? -1 : 1;
       return p.sort === "name" ? byName(a.lead, b.lead) : byRecent(a.lead, b.lead);

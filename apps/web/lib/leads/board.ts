@@ -1,3 +1,4 @@
+import type { BusinessHours } from "@c1imob/core";
 import { applyList, parseListParams, type LeadRow } from "./list";
 import { isStage, STAGES, STAGE_LABEL, type Stage } from "./stages";
 
@@ -5,8 +6,12 @@ export type Column = { stage: Stage; label: string; leads: LeadRow[] };
 export type Board = Column[];
 
 /** Uma coluna por estágio, na ordem do funil; dentro dela, atrasados primeiro e depois os mais recentes. */
-export function buildBoard(leads: readonly LeadRow[], now: Date): Board {
-  const sorted = applyList(leads, parseListParams({}), now);
+export function buildBoard(
+  leads: readonly LeadRow[],
+  now: Date,
+  hours: BusinessHours | null = null,
+): Board {
+  const sorted = applyList(leads, parseListParams({}), now, hours);
   return STAGES.map((stage) => ({
     stage,
     label: STAGE_LABEL[stage],

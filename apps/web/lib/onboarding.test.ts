@@ -4,6 +4,8 @@ import {
   criteriaForm,
   parseAdsAccount,
   parseBrand,
+  parseBusinessHoursForm,
+  businessHoursForm,
   parseCriteria,
   parseInvite,
   parseLogo,
@@ -21,17 +23,30 @@ describe("slugify", () => {
 });
 
 describe("parseNewOrg", () => {
-  const ok = { name: "Lumen Imóveis", slug: "lumen", adminName: "Lia", adminEmail: "Lia@Lumen.com.br" };
+  const ok = {
+    name: "Lumen Imóveis",
+    slug: "lumen",
+    adminName: "Lia",
+    adminEmail: "Lia@Lumen.com.br",
+  };
 
   it("aceita e normaliza o e-mail", () => {
     expect(parseNewOrg(ok)).toEqual({
       ok: true,
-      value: { name: "Lumen Imóveis", slug: "lumen", adminName: "Lia", adminEmail: "lia@lumen.com.br" },
+      value: {
+        name: "Lumen Imóveis",
+        slug: "lumen",
+        adminName: "Lia",
+        adminEmail: "lia@lumen.com.br",
+      },
     });
   });
 
   it("endereço vazio vem do nome", () => {
-    expect(parseNewOrg({ ...ok, slug: "" })).toMatchObject({ ok: true, value: { slug: "lumen-imoveis" } });
+    expect(parseNewOrg({ ...ok, slug: "" })).toMatchObject({
+      ok: true,
+      value: { slug: "lumen-imoveis" },
+    });
   });
 
   it("recusa endereço reservado ou fora do formato, com mensagem", () => {
@@ -54,7 +69,9 @@ describe("parseNewOrg", () => {
 
 describe("parseInvite", () => {
   it("aceita nome, e-mail em minúsculas e WhatsApp opcional só com dígitos", () => {
-    expect(parseInvite({ name: " Rafael ", email: "R@X.com", whatsapp: "+55 (11) 97777-0001" })).toEqual({
+    expect(
+      parseInvite({ name: " Rafael ", email: "R@X.com", whatsapp: "+55 (11) 97777-0001" }),
+    ).toEqual({
       ok: true,
       value: { name: "Rafael", email: "r@x.com", whatsapp: "5511977770001" },
     });
@@ -65,7 +82,9 @@ describe("parseInvite", () => {
   });
 
   it("recusa WhatsApp sem DDI ou curto demais", () => {
-    expect(parseInvite({ name: "R", email: "r@x.com", whatsapp: "123" })).toMatchObject({ ok: false });
+    expect(parseInvite({ name: "R", email: "r@x.com", whatsapp: "123" })).toMatchObject({
+      ok: false,
+    });
   });
 });
 
@@ -97,7 +116,9 @@ describe("parseBrand e brandForm", () => {
   });
 
   it("recusa cor fora do formato e link que não é https", () => {
-    expect(parseBrand({ color: "azul", creci: "", whatsapp: "", privacyUrl: "" })).toMatchObject({ ok: false });
+    expect(parseBrand({ color: "azul", creci: "", whatsapp: "", privacyUrl: "" })).toMatchObject({
+      ok: false,
+    });
     expect(
       parseBrand({ color: "#155F4B", creci: "", whatsapp: "", privacyUrl: "javascript:alert(1)" }),
     ).toMatchObject({ ok: false });
@@ -147,13 +168,80 @@ describe("parte técnica", () => {
 
 describe("parseLogo", () => {
   it("aceita PNG, JPEG e WebP até 1 MB, com a extensão certa", () => {
-    expect(parseLogo({ type: "image/png", size: 50_000 })).toEqual({ ok: true, value: { ext: "png", type: "image/png" } });
-    expect(parseLogo({ type: "image/jpeg", size: 1_048_576 })).toEqual({ ok: true, value: { ext: "jpg", type: "image/jpeg" } });
+    expect(parseLogo({ type: "image/png", size: 50_000 })).toEqual({
+      ok: true,
+      value: { ext: "png", type: "image/png" },
+    });
+    expect(parseLogo({ type: "image/jpeg", size: 1_048_576 })).toEqual({
+      ok: true,
+      value: { ext: "jpg", type: "image/jpeg" },
+    });
   });
 
   it("recusa SVG, arquivo vazio e acima de 1 MB", () => {
-    expect(parseLogo({ type: "image/svg+xml", size: 100 })).toEqual({ ok: false, message: "Use PNG, JPG ou WebP." });
-    expect(parseLogo({ type: "image/png", size: 0 })).toEqual({ ok: false, message: "Escolha a imagem do logo." });
-    expect(parseLogo({ type: "image/png", size: 1_048_577 })).toEqual({ ok: false, message: "O logo passa de 1 MB." });
+    expect(parseLogo({ type: "image/svg+xml", size: 100 })).toEqual({
+      ok: false,
+      message: "Use PNG, JPG ou WebP.",
+    });
+    expect(parseLogo({ type: "image/png", size: 0 })).toEqual({
+      ok: false,
+      message: "Escolha a imagem do logo.",
+    });
+    expect(parseLogo({ type: "image/png", size: 1_048_577 })).toEqual({
+      ok: false,
+      message: "O logo passa de 1 MB.",
+    });
+  });
+});
+
+describe("parseBusinessHoursForm e businessHoursForm", () => {
+  it("dias marcados e janela válida viram o horário", () => {
+    expect(
+      parseBusinessHoursForm({ days: ["5", "1", "3"], open: "08:30", close: "17:00" }),
+    ).toEqual({
+      ok: true,
+      value: { days: [1, 3, 5], open: "08:30", close: "17:00" },
+    });
+  });
+
+  it("recusa sem dia, hora fora do formato ou fechamento antes da abertura", () => {
+    expect(parseBusinessHoursForm({ days: [], open: "09:00", close: "18:00" })).toEqual({
+      ok: false,
+      message: "Escolha ao menos um dia.",
+    });
+    expect(parseBusinessHoursForm({ days: ["1"], open: "9h", close: "18:00" })).toEqual({
+      ok: false,
+      message: "Use o formato HH:MM.",
+    });
+    expect(parseBusinessHoursForm({ days: ["1"], open: "18:00", close: "18:00" })).toEqual({
+      ok: false,
+      message: "O fechamento precisa ser depois da abertura.",
+    });
+    expect(parseBusinessHoursForm({ days: ["7"], open: "09:00", close: "18:00" })).toEqual({
+      ok: false,
+      message: "Escolha ao menos um dia.",
+    });
+  });
+
+  it("desligar o horário grava nulo (tempo corrido)", () => {
+    expect(parseBusinessHoursForm({ enabled: "off", days: [], open: "", close: "" })).toEqual({
+      ok: true,
+      value: null,
+    });
+  });
+
+  it("o formulário começa com o horário salvo, ou seg–sex 9h–18h desligado", () => {
+    expect(businessHoursForm({ days: [1, 2], open: "08:00", close: "12:00" })).toEqual({
+      enabled: true,
+      days: [1, 2],
+      open: "08:00",
+      close: "12:00",
+    });
+    expect(businessHoursForm(null)).toEqual({
+      enabled: false,
+      days: [1, 2, 3, 4, 5],
+      open: "09:00",
+      close: "18:00",
+    });
   });
 });

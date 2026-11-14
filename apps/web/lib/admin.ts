@@ -23,13 +23,16 @@ const Settings = z.object({
   brand: z.record(z.string(), z.unknown()),
   qualify_timeframe: z.string(),
   qualify_price_share: z.union([z.string(), z.number()]),
+  business_hours: z.unknown(),
 });
 export type OrgSettings = z.infer<typeof Settings>;
 
 export async function loadOrgSettings(organizationId: string): Promise<OrgSettings | null> {
-  const { data } = await (await sb())
+  const { data } = await (
+    await sb()
+  )
     .from("organizations")
-    .select("name, slug, brand, qualify_timeframe, qualify_price_share")
+    .select("name, slug, brand, qualify_timeframe, qualify_price_share, business_hours")
     .eq("id", organizationId)
     .maybeSingle();
   const parsed = Settings.safeParse(data);
@@ -47,7 +50,9 @@ export type PendingInvitation = { id: string; email: string; name: string; role:
 
 /** Convites ainda não aceitos (só o gestor vê). */
 export async function loadPendingInvitations(organizationId: string): Promise<PendingInvitation[]> {
-  const { data } = await (await sb())
+  const { data } = await (
+    await sb()
+  )
     .from("invitations")
     .select("id, email, role, display_name, created_at")
     .eq("organization_id", organizationId)
@@ -60,7 +65,9 @@ export async function loadPendingInvitations(organizationId: string): Promise<Pe
 
 /** Pessoas desativadas da equipe (para reativar). */
 export async function loadInactiveMembers(organizationId: string) {
-  const { data } = await (await sb())
+  const { data } = await (
+    await sb()
+  )
     .from("memberships")
     .select("user_id, display_name")
     .eq("organization_id", organizationId)
@@ -118,6 +125,8 @@ export async function loadTechnical(organizationId: string): Promise<Technical> 
 /** Imobiliárias que a pessoa acessa, com o endereço (tela da agência). */
 export async function loadMyOrganizationsWithSlug() {
   const { data } = await (await sb()).from("organizations").select("id, name, slug").order("name");
-  const parsed = z.array(z.object({ id: z.uuid(), name: z.string(), slug: z.string() })).safeParse(data ?? []);
+  const parsed = z
+    .array(z.object({ id: z.uuid(), name: z.string(), slug: z.string() }))
+    .safeParse(data ?? []);
   return parsed.success ? parsed.data : [];
 }

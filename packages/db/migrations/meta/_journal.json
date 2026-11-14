@@ -225,6 +225,20 @@
       "when": 1794616444203,
       "tag": "0031_logo_da_marca",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1794616938513,
+      "tag": "0032_keen_mister_fear",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1794616940650,
+      "tag": "0033_horario_grant",
+      "breakpoints": true
     }
   ]
 }

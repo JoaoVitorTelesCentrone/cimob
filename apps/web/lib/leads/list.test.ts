@@ -35,6 +35,34 @@ describe("isLate", () => {
   });
 });
 
+describe("isLate com horário de atendimento", () => {
+  const WEEK = { days: [1, 2, 3, 4, 5], open: "09:00", close: "18:00" };
+  const fridayNight = new Date("2026-11-13T22:00:00-03:00");
+
+  it("conta só o tempo dentro do horário", () => {
+    const l = lead({ assignedAt: fridayNight });
+    expect(isLate(l, new Date("2026-11-16T11:00:00-03:00"), WEEK)).toBe(false);
+    expect(isLate(l, new Date("2026-11-16T11:00:01-03:00"), WEEK)).toBe(true);
+  });
+
+  it("sem horário, tempo corrido", () => {
+    expect(
+      isLate(lead({ assignedAt: fridayNight }), new Date("2026-11-14T00:01:00-03:00"), null),
+    ).toBe(true);
+  });
+});
+
+describe("applyList com horário de atendimento", () => {
+  it("o filtro e a ordem de atrasados seguem o horário", () => {
+    const NO_THURSDAY = { days: [1, 2, 3, 5], open: "09:00", close: "18:00" };
+    const leads = [lead({ id: "a", name: "Ana" })];
+    expect(applyList(leads, { ...parseListParams({}), late: true }, now)).toHaveLength(1);
+    expect(applyList(leads, { ...parseListParams({}), late: true }, now, NO_THURSDAY)).toHaveLength(
+      0,
+    );
+  });
+});
+
 describe("parseListParams", () => {
   it("padrões quando nada vem no endereço", () => {
     expect(parseListParams({})).toEqual({

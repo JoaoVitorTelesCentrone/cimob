@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { ActionForm } from "@/components/action-form";
 import { isPlatformAdmin, loadOrgSettings, loadTechnical } from "@/lib/admin";
 import { loadMyRole } from "@/lib/leads/queries";
-import { brandForm, criteriaForm, TIMEFRAMES } from "@/lib/onboarding";
+import { brandForm, businessHoursForm, criteriaForm, TIMEFRAMES, WEEKDAYS } from "@/lib/onboarding";
 import { currentDecision } from "@/lib/org";
 import { canManageTeam } from "@/lib/team";
 import { ActionButton } from "@/components/action-button";
@@ -11,6 +11,7 @@ import {
   removeLogo,
   saveAdsAccount,
   saveBrand,
+  saveBusinessHours,
   saveCriteria,
   saveWhatsappAccount,
   uploadLogo,
@@ -50,6 +51,7 @@ async function Config() {
     settings?.qualify_timeframe ?? "6m",
     settings?.qualify_price_share ?? "0.90",
   );
+  const hours = businessHoursForm(settings?.business_hours ?? null);
 
   return (
     <div className="flex max-w-3xl flex-col gap-4">
@@ -115,7 +117,11 @@ async function Config() {
             <p className={hint}>Aparece no topo do site. PNG, JPG ou WebP até 1 MB.</p>
             <div className="flex flex-wrap items-start gap-4">
               {logoUrl && (
-                <img src={logoUrl} alt="Logo atual" className="h-14 w-auto rounded-sm border border-line bg-surface p-1" />
+                <img
+                  src={logoUrl}
+                  alt="Logo atual"
+                  className="h-14 w-auto rounded-sm border border-line bg-surface p-1"
+                />
               )}
               <ActionForm action={uploadLogo} submitLabel="Enviar logo" label="Logo">
                 <input
@@ -173,6 +179,56 @@ async function Config() {
                   />
                 </label>
               </div>
+            </ActionForm>
+          </section>
+
+          <section className={panel}>
+            <h2 className={heading}>Horário de atendimento</h2>
+            <p className={hint}>
+              Hora de Brasília. O alerta de lead sem primeira resposta conta só as 2 h dentro do
+              horário: quem chega de noite ou no fim de semana não aparece como atrasado antes de a
+              equipe começar.
+            </p>
+            <ActionForm
+              action={saveBusinessHours}
+              submitLabel="Salvar horário"
+              label="Horário de atendimento"
+            >
+              <div className="grid gap-3 sm:grid-cols-3">
+                <label className={field}>
+                  Contar o atraso
+                  <select
+                    name="enabled"
+                    defaultValue={hours.enabled ? "on" : "off"}
+                    className={input}
+                  >
+                    <option value="on">Só no horário de atendimento</option>
+                    <option value="off">Em qualquer horário (tempo corrido)</option>
+                  </select>
+                </label>
+                <label className={field}>
+                  Abre às
+                  <input name="open" type="time" defaultValue={hours.open} className={input} />
+                </label>
+                <label className={field}>
+                  Fecha às
+                  <input name="close" type="time" defaultValue={hours.close} className={input} />
+                </label>
+              </div>
+              <fieldset className="mt-3 flex flex-wrap gap-3 text-sm">
+                <legend className="mb-1 font-semibold">Dias</legend>
+                {WEEKDAYS.map((d) => (
+                  <label key={d.value} className="flex items-center gap-1">
+                    <input
+                      type="checkbox"
+                      name="days"
+                      value={d.value}
+                      defaultChecked={hours.days.includes(d.value)}
+                    />
+                    {d.label}
+                  </label>
+                ))}
+              </fieldset>
             </ActionForm>
           </section>
         </>

@@ -2,7 +2,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { RealtimeRefresh } from "@/components/realtime-refresh";
 import { buildDashboard, parsePeriod, PERIODS } from "@/lib/leads/dashboard";
-import { loadAdSpend, loadDashboardLeads, loadMembers } from "@/lib/leads/queries";
+import {
+  loadAdSpend,
+  loadBusinessHours,
+  loadDashboardLeads,
+  loadMembers,
+} from "@/lib/leads/queries";
 import { currentDecision } from "@/lib/org";
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -22,8 +27,8 @@ export async function DashboardView({ searchParams }: { searchParams: Promise<Se
   const members = await loadMembers(orgId);
   const leads = await loadDashboardLeads(orgId, members);
   const now = new Date();
-  const spend = await loadAdSpend(orgId, now);
-  const d = buildDashboard(leads, members, period, now, spend);
+  const [spend, hours] = await Promise.all([loadAdSpend(orgId, now), loadBusinessHours(orgId)]);
+  const d = buildDashboard(leads, members, period, now, spend, hours);
   const withCost = d.costKpis.length > 0;
   const top = Math.max(1, d.funnel[0]?.count ?? 0);
 

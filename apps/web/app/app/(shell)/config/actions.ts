@@ -5,6 +5,7 @@ import { currentDecision } from "@/lib/org";
 import {
   parseAdsAccount,
   parseBrand,
+  parseBusinessHoursForm,
   parseCriteria,
   parseLogo,
   parsePhoneNumberId,
@@ -53,12 +54,44 @@ export async function saveCriteria(
   if (!id) return { ok: false, message: "Escolha uma imobiliária" };
 
   const supabase = await createClient();
-  const updated = await supabase.from("organizations").update(input.value).eq("id", id).select("id");
+  const updated = await supabase
+    .from("organizations")
+    .update(input.value)
+    .eq("id", id)
+    .select("id");
   if (updated.error || updated.data.length === 0) {
     return { ok: false, message: "Só o gestor muda o critério" };
   }
   revalidatePath("/app/config");
   return { ok: true, message: "Critério salvo. Vale para os próximos leads." };
+}
+
+/** Horário de atendimento: o alerta de 2 h conta só dentro dele. O banco só deixa o gestor gravar. */
+export async function saveBusinessHours(
+  _prev: ActionResult | null,
+  form: FormData,
+): Promise<ActionResult> {
+  const input = parseBusinessHoursForm({
+    enabled: form.get("enabled"),
+    days: form.getAll("days"),
+    open: form.get("open"),
+    close: form.get("close"),
+  });
+  if (!input.ok) return { ok: false, message: input.message };
+  const id = await orgId();
+  if (!id) return { ok: false, message: "Escolha uma imobiliária" };
+
+  const supabase = await createClient();
+  const updated = await supabase
+    .from("organizations")
+    .update({ business_hours: input.value })
+    .eq("id", id)
+    .select("id");
+  if (updated.error || updated.data.length === 0) {
+    return { ok: false, message: "Só o gestor muda o horário de atendimento" };
+  }
+  revalidatePath("/app/config");
+  return { ok: true, message: "Horário salvo" };
 }
 
 /** Número do bot (só a Center One). Token vazio mantém o que está no cofre. */
@@ -120,7 +153,10 @@ async function patchBrand(id: string, patch: Record<string, unknown>) {
 }
 
 /** Logo no Storage (bucket brand, pasta da imobiliária); o RLS do Storage só deixa o gestor. */
-export async function uploadLogo(_prev: ActionResult | null, form: FormData): Promise<ActionResult> {
+export async function uploadLogo(
+  _prev: ActionResult | null,
+  form: FormData,
+): Promise<ActionResult> {
   const file = form.get("logo");
   if (!(file instanceof File)) return { ok: false, message: "Escolha a imagem do logo." };
   const input = parseLogo(file);
@@ -138,7 +174,8 @@ export async function uploadLogo(_prev: ActionResult | null, form: FormData): Pr
   // ?v= troca a URL a cada envio: o site não fica com o logo antigo em cache.
   const url = `${supabase.storage.from("brand").getPublicUrl(path).data.publicUrl}?v=${String(Date.now())}`;
   const saved = await patchBrand(id, { logoUrl: url });
-  if (saved.error || saved.data.length === 0) return { ok: false, message: "Só o gestor muda o logo" };
+  if (saved.error || saved.data.length === 0)
+    return { ok: false, message: "Só o gestor muda o logo" };
   revalidatePath("/app/config");
   return { ok: true, message: "Logo salvo" };
 }
@@ -147,7 +184,8 @@ export async function removeLogo(): Promise<ActionResult> {
   const id = await orgId();
   if (!id) return { ok: false, message: "Escolha uma imobiliária" };
   const saved = await patchBrand(id, { logoUrl: null });
-  if (saved.error || saved.data.length === 0) return { ok: false, message: "Só o gestor muda o logo" };
+  if (saved.error || saved.data.length === 0)
+    return { ok: false, message: "Só o gestor muda o logo" };
   revalidatePath("/app/config");
   return { ok: true, message: "Logo removido" };
 }

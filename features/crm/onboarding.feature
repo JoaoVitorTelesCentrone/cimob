@@ -77,6 +77,14 @@ Funcionalidade: Entrada de imobiliária e da equipe
     Quando "Marina" muda a marca para a cor "#000000", o CRECI "X" e o WhatsApp "5511900001111"
     Então a marca da "Horizonte" não mudou
 
+  Cenário: Gestora define o horário de atendimento
+    Quando "Paula" define o horário de atendimento de segunda a sexta, das 09:00 às 18:00
+    Então o horário de atendimento da "Horizonte" é de segunda a sexta, das 09:00 às 18:00
+
+  Cenário: Corretora não muda o horário de atendimento
+    Quando "Marina" define o horário de atendimento de segunda a sexta, das 09:00 às 18:00
+    Então a "Horizonte" continua sem horário de atendimento
+
   Cenário: Admin da plataforma configura o WhatsApp do bot e a conta de anúncios, com token no cofre
     Quando "Carlos" configura na "Horizonte" o número "PHONE_H" com o token "EAAG-wa-segredo-123"
     E "Carlos" configura na "Horizonte" a conta de anúncios "act_777" com o token "EAAG-ads-segredo-456"

@@ -27,10 +27,17 @@ describeFeature(feature, ({ Background, Scenario: Sc, ScenarioOutline, AfterEach
       if (row) s.orgs.set(name, row.id);
     });
 
-  const invite = (user: string, org: string, name: string, email: string, whatsapp: string | null) =>
+  const invite = (
+    user: string,
+    org: string,
+    name: string,
+    email: string,
+    whatsapp: string | null,
+  ) =>
     attempt(
       user,
-      (c) => c`select public.invite_member(${s.orgId(org)}, ${email}, 'agent', ${name}, ${whatsapp})`,
+      (c) =>
+        c`select public.invite_member(${s.orgId(org)}, ${email}, 'agent', ${name}, ${whatsapp})`,
     );
 
   /** Primeira entrada: usuário novo no Auth com o e-mail, e o app aceita os convites dele. */
@@ -77,10 +84,13 @@ describeFeature(feature, ({ Background, Scenario: Sc, ScenarioOutline, AfterEach
         await s.member(agent, org, "agent");
       },
     );
-    And("a imobiliária {string} com o gestor {string}", async (_ctx, org: string, admin: string) => {
-      await s.org(org);
-      await s.member(admin, org, "org_admin");
-    });
+    And(
+      "a imobiliária {string} com o gestor {string}",
+      async (_ctx, org: string, admin: string) => {
+        await s.org(org);
+        await s.member(admin, org, "org_admin");
+      },
+    );
   });
 
   const refused = (Then: (t: string, f: () => void) => void) => {
@@ -92,7 +102,10 @@ describeFeature(feature, ({ Background, Scenario: Sc, ScenarioOutline, AfterEach
     t: string,
     f: (c: unknown, a: string, b: string, c2: string, d: string, e: string) => Promise<void>,
   ) => void;
-  type Step4 = (t: string, f: (c: unknown, a: string, b: string, c2: string, d: string) => Promise<void>) => void;
+  type Step4 = (
+    t: string,
+    f: (c: unknown, a: string, b: string, c2: string, d: string) => Promise<void>,
+  ) => void;
   const createStep = (When: Step5) => {
     When(
       "{string} cria a imobiliária {string} no endereço {string} com o gestor {string} de e-mail {string}",
@@ -108,7 +121,9 @@ describeFeature(feature, ({ Background, Scenario: Sc, ScenarioOutline, AfterEach
       "a imobiliária {string} existe no endereço {string}",
       async (_ctx, name: string, slug: string) => {
         expect(dbError).toBeNull();
-        const [row] = await s.conn<{ name: string }[]>`select name from organizations where slug = ${slug}`;
+        const [row] = await s.conn<
+          { name: string }[]
+        >`select name from organizations where slug = ${slug}`;
         expect(row?.name).toBe(name);
       },
     );
@@ -122,7 +137,9 @@ describeFeature(feature, ({ Background, Scenario: Sc, ScenarioOutline, AfterEach
     And(
       "há um convite pendente para {string} como gestor {string} na {string}",
       async (_ctx, email: string, name: string, org: string) => {
-        const rows = await s.conn<{ role: string; display_name: string; accepted_at: Date | null }[]>`
+        const rows = await s.conn<
+          { role: string; display_name: string; accepted_at: Date | null }[]
+        >`
           select role::text, display_name, accepted_at from invitations
           where organization_id = ${s.orgId(org)} and email = ${email}`;
         expect(rows).toEqual([{ role: "org_admin", display_name: name, accepted_at: null }]);
@@ -186,7 +203,8 @@ describeFeature(feature, ({ Background, Scenario: Sc, ScenarioOutline, AfterEach
     Then(
       "a pessoa de e-mail {string} não é membro de nenhuma imobiliária",
       async (_ctx, email: string) => {
-        const rows = await s.conn`select 1 from memberships where user_id = ${byEmail.get(email) ?? ""}`;
+        const rows =
+          await s.conn`select 1 from memberships where user_id = ${byEmail.get(email) ?? ""}`;
         expect(rows).toHaveLength(0);
       },
     );
@@ -222,7 +240,8 @@ describeFeature(feature, ({ Background, Scenario: Sc, ScenarioOutline, AfterEach
       When("{string} desativa {string}", async (_ctx, user: string, member: string) => {
         await attempt(
           user,
-          (c) => c`select public.set_member_active(${s.orgId("Horizonte")}, ${userId(member)}, false)`,
+          (c) =>
+            c`select public.set_member_active(${s.orgId("Horizonte")}, ${userId(member)}, false)`,
         );
         expect(dbError).toBeNull();
       });
@@ -245,7 +264,8 @@ describeFeature(feature, ({ Background, Scenario: Sc, ScenarioOutline, AfterEach
     When("{string} desativa {string}", async (_ctx, user: string, member: string) => {
       await attempt(
         user,
-        (c) => c`select public.set_member_active(${s.orgId("Horizonte")}, ${userId(member)}, false)`,
+        (c) =>
+          c`select public.set_member_active(${s.orgId("Horizonte")}, ${userId(member)}, false)`,
       );
     });
     refused(Then);
@@ -294,11 +314,18 @@ describeFeature(feature, ({ Background, Scenario: Sc, ScenarioOutline, AfterEach
       async (_ctx, user: string, org: string) => {
         const id = s.orgId(org);
         errors = [
-          await s.expectError(() => s.as(user, (c) => c`update organizations set slug = 'outra' where id = ${id}`)),
           await s.expectError(() =>
-            s.as(user, (c) => c`update organizations set custom_domain = 'x.com.br' where id = ${id}`),
+            s.as(user, (c) => c`update organizations set slug = 'outra' where id = ${id}`),
           ),
-          await s.expectError(() => s.as(user, (c) => c`update organizations set plan = 'pro' where id = ${id}`)),
+          await s.expectError(() =>
+            s.as(
+              user,
+              (c) => c`update organizations set custom_domain = 'x.com.br' where id = ${id}`,
+            ),
+          ),
+          await s.expectError(() =>
+            s.as(user, (c) => c`update organizations set plan = 'pro' where id = ${id}`),
+          ),
         ];
       },
     );
@@ -318,6 +345,43 @@ describeFeature(feature, ({ Background, Scenario: Sc, ScenarioOutline, AfterEach
     );
     Then("a marca da {string} não mudou", async (_ctx, org: string) => {
       expect(await brandOf(org)).toEqual(before);
+    });
+  });
+
+  const WEEK = { days: [1, 2, 3, 4, 5], open: "09:00", close: "18:00" };
+  const hoursOf = async (org: string) => {
+    const [row] = await s.conn<{ business_hours: unknown }[]>`
+      select business_hours from organizations where id = ${s.orgId(org)}`;
+    return row?.business_hours ?? null;
+  };
+  const setHours = (user: string) =>
+    s.as(
+      user,
+      (c) => c`update organizations set business_hours = ${c.json(WEEK)}
+               where id = ${s.orgId("Horizonte")}`,
+    );
+  const STEP_SET_HOURS =
+    "{string} define o horário de atendimento de segunda a sexta, das 09:00 às 18:00";
+
+  Sc("Gestora define o horário de atendimento", ({ When, Then }) => {
+    When(STEP_SET_HOURS, async (_ctx, user: string) => {
+      await setHours(user);
+    });
+    Then(
+      "o horário de atendimento da {string} é de segunda a sexta, das 09:00 às 18:00",
+      async (_ctx, org: string) => {
+        expect(await hoursOf(org)).toEqual(WEEK);
+      },
+    );
+  });
+
+  Sc("Corretora não muda o horário de atendimento", ({ When, Then }) => {
+    When(STEP_SET_HOURS, async (_ctx, user: string) => {
+      // O RLS filtra a linha para quem não é gestor: o UPDATE passa sem mudar nada, ou é negado.
+      await s.expectError(() => setHours(user));
+    });
+    Then("a {string} continua sem horário de atendimento", async (_ctx, org: string) => {
+      expect(await hoursOf(org)).toBeNull();
     });
   });
 
@@ -357,12 +421,15 @@ describeFeature(feature, ({ Background, Scenario: Sc, ScenarioOutline, AfterEach
           expect(row?.token).toBe(token);
         },
       );
-      And("o token da conta {string} no cofre é {string}", async (_ctx, act: string, token: string) => {
-        const [row] = await s.conn<{ token: string }[]>`
+      And(
+        "o token da conta {string} no cofre é {string}",
+        async (_ctx, act: string, token: string) => {
+          const [row] = await s.conn<{ token: string }[]>`
           select s.decrypted_secret as token from meta_ads_accounts a
           join vault.decrypted_secrets s on s.id = a.token_secret_id where a.ad_account_id = ${act}`;
-        expect(row?.token).toBe(token);
-      });
+          expect(row?.token).toBe(token);
+        },
+      );
       And(
         "{string} vê o número {string} e a conta {string} com token guardado, sem ver os tokens",
         async (_ctx, user: string, phone: string, act: string) => {
@@ -398,13 +465,20 @@ describeFeature(feature, ({ Background, Scenario: Sc, ScenarioOutline, AfterEach
   };
   const cancel = async (user: string, email: string) => {
     const id = await invitationId(email);
-    dbError = await s.expectError(() => s.as(user, (c) => c`select public.cancel_invitation(${id})`));
+    dbError = await s.expectError(() =>
+      s.as(user, (c) => c`select public.cancel_invitation(${id})`),
+    );
   };
-  const invited = (Given: (t: string, f: (c: unknown, u: string, n: string, e: string) => Promise<void>) => void) => {
-    Given("{string} convidou {string} de e-mail {string} como corretor", async (_ctx, user, name, email) => {
-      await invite(user, "Horizonte", name, email, null);
-      expect(dbError).toBeNull();
-    });
+  const invited = (
+    Given: (t: string, f: (c: unknown, u: string, n: string, e: string) => Promise<void>) => void,
+  ) => {
+    Given(
+      "{string} convidou {string} de e-mail {string} como corretor",
+      async (_ctx, user, name, email) => {
+        await invite(user, "Horizonte", name, email, null);
+        expect(dbError).toBeNull();
+      },
+    );
   };
 
   Sc("Gestora cancela um convite pendente", ({ Given, When, Then, And }) => {
@@ -416,20 +490,28 @@ describeFeature(feature, ({ Background, Scenario: Sc, ScenarioOutline, AfterEach
     And("a pessoa de e-mail {string} entra pela 1ª vez", async (_ctx, email: string) => {
       await firstLogin(email);
     });
-    Then("a pessoa de e-mail {string} não é membro de nenhuma imobiliária", async (_ctx, email: string) => {
-      const rows = await s.conn`select 1 from memberships where user_id = ${byEmail.get(email) ?? ""}`;
-      expect(rows).toHaveLength(0);
-    });
+    Then(
+      "a pessoa de e-mail {string} não é membro de nenhuma imobiliária",
+      async (_ctx, email: string) => {
+        const rows =
+          await s.conn`select 1 from memberships where user_id = ${byEmail.get(email) ?? ""}`;
+        expect(rows).toHaveLength(0);
+      },
+    );
   });
 
   Sc("Convite aceito não se cancela e corretora não cancela", ({ Given, When, Then, And }) => {
     invited(Given);
-    When("{string} tenta cancelar o convite de {string}", async (_ctx, user: string, email: string) => {
-      await cancel(user, email);
-    });
+    When(
+      "{string} tenta cancelar o convite de {string}",
+      async (_ctx, user: string, email: string) => {
+        await cancel(user, email);
+      },
+    );
     refused(Then);
     And("o convite de {string} continua pendente", async (_ctx, email: string) => {
-      const rows = await s.conn`select 1 from invitations where email = ${email} and accepted_at is null`;
+      const rows =
+        await s.conn`select 1 from invitations where email = ${email} and accepted_at is null`;
       expect(rows).toHaveLength(1);
     });
   });

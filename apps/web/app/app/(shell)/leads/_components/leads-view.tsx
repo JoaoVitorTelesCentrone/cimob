@@ -3,7 +3,13 @@ import { redirect } from "next/navigation";
 import { RealtimeRefresh } from "@/components/realtime-refresh";
 import { formatDateTime, formatPhone } from "@/lib/format";
 import { applyList, isLate, parseListParams, type ListParams } from "@/lib/leads/list";
-import { loadLead, loadLeads, loadMembers, loadMyRole } from "@/lib/leads/queries";
+import {
+  loadLead,
+  loadLeads,
+  loadMembers,
+  loadBusinessHours,
+  loadMyRole,
+} from "@/lib/leads/queries";
 import { STAGE_CLASS } from "@/lib/leads/stage-style";
 import { STAGES, STAGE_LABEL } from "@/lib/leads/stages";
 import { currentDecision } from "@/lib/org";
@@ -44,15 +50,18 @@ export async function LeadsView({
   const raw = await searchParams;
   const params = parseListParams(raw);
   const members = await loadMembers(orgId);
-  const [all, detail, role] = await Promise.all([
+  const [all, detail, role, hours] = await Promise.all([
     loadLeads(orgId, members),
     leadId ? loadLead(orgId, leadId, members) : Promise.resolve(null),
     loadMyRole(orgId),
+    loadBusinessHours(orgId),
   ]);
-  const myId = leadId ? ((await (await createClient()).auth.getUser()).data.user?.id ?? null) : null;
+  const myId = leadId
+    ? ((await (await createClient()).auth.getUser()).data.user?.id ?? null)
+    : null;
   const now = new Date();
-  const leads = applyList(all, params, now);
-  const lateCount = all.filter((l) => isLate(l, now)).length;
+  const leads = applyList(all, params, now, hours);
+  const lateCount = all.filter((l) => isLate(l, now, hours)).length;
   const query = toQuery(params);
 
   return (
@@ -163,7 +172,7 @@ export async function LeadsView({
                         Próximo passo vencido
                       </span>
                     )}
-                    {isLate(lead, now) && (
+                    {isLate(lead, now, hours) && (
                       <span className={`${pill} ml-2 bg-danger-soft text-danger`}>Atrasado</span>
                     )}
                   </td>
@@ -189,6 +198,7 @@ export async function LeadsView({
           lead={detail}
           closeHref={`/app/leads${query}`}
           now={now}
+          hours={hours}
           canAssign={canManageTeam(role)}
           canWork={canManageTeam(role) || (detail?.ownerId !== null && detail?.ownerId === myId)}
           canManageData={canManageTeam(role)}
