@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyList, isLate, parseListParams, type LeadRow } from "./list";
+import { applyList, isLate, isNurture, parseListParams, type LeadRow } from "./list";
 
 const now = new Date("2026-11-12T15:00:00-03:00");
 const hoursAgo = (h: number) => new Date(now.getTime() - h * 3_600_000);
@@ -63,6 +63,26 @@ describe("applyList com horário de atendimento", () => {
   });
 });
 
+describe("isNurture", () => {
+  it("o bot não qualificou e o lead continua em Novo", () => {
+    expect(isNurture(lead({ qualified: false, ownerId: null, assignedAt: null }))).toBe(true);
+  });
+
+  it("qualificado, sem resposta do bot ainda, ou já trabalhado não é nutrição", () => {
+    expect(isNurture(lead({ qualified: true }))).toBe(false);
+    expect(isNurture(lead({ qualified: null }))).toBe(false);
+    expect(isNurture(lead({}))).toBe(false);
+    expect(isNurture(lead({ qualified: false, stage: "contacted" }))).toBe(false);
+    expect(isNurture(lead({ qualified: false, stage: "lost" }))).toBe(false);
+  });
+
+  it("o filtro de nutrição mostra só esses", () => {
+    const leads = [lead({ id: "a", qualified: false }), lead({ id: "b", qualified: true })];
+    const shown = applyList(leads, { ...parseListParams({}), nurture: true }, now);
+    expect(shown.map((l) => l.id)).toEqual(["a"]);
+  });
+});
+
 describe("parseListParams", () => {
   it("padrões quando nada vem no endereço", () => {
     expect(parseListParams({})).toEqual({
@@ -70,18 +90,26 @@ describe("parseListParams", () => {
       stage: null,
       owner: null,
       late: false,
+      nurture: false,
       sort: "recent",
     });
   });
 
   it("aceita valores válidos e usa o primeiro de listas", () => {
     expect(
-      parseListParams({ q: [" ana ", "x"], stage: "won", owner: "u1", late: "1", sort: "name" }),
-    ).toEqual({ q: "ana", stage: "won", owner: "u1", late: true, sort: "name" });
+      parseListParams({
+        q: [" ana ", "x"],
+        stage: "won",
+        owner: "u1",
+        late: "1",
+        nurture: "1",
+        sort: "name",
+      }),
+    ).toEqual({ q: "ana", stage: "won", owner: "u1", late: true, nurture: true, sort: "name" });
   });
 
   it("ignora valores inválidos", () => {
-    expect(parseListParams({ stage: "xyz", sort: "hack", late: "talvez" })).toEqual(
+    expect(parseListParams({ stage: "xyz", sort: "hack", late: "talvez", nurture: "sim" })).toEqual(
       parseListParams({}),
     );
   });

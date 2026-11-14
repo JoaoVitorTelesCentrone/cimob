@@ -25,6 +25,7 @@ const LeadRecord = z.object({
   created_at: z.string().transform((v) => new Date(v)),
   next_step: z.string().nullable(),
   next_step_at: date,
+  qualified: z.boolean().nullable(),
 });
 
 const MemberRecord = z.object({
@@ -36,7 +37,7 @@ const MemberRecord = z.object({
 export type Member = { userId: string; name: string; role: z.infer<typeof MemberRecord>["role"] };
 
 const LEAD_COLUMNS =
-  "id, name, phone, stage, owner_id, assigned_at, first_response_at, created_at, next_step, next_step_at";
+  "id, name, phone, stage, owner_id, assigned_at, first_response_at, created_at, next_step, next_step_at, qualified";
 
 async function query<T>(
   run: (sb: Awaited<ReturnType<typeof createClient>>) => PromiseLike<{
@@ -77,6 +78,7 @@ function toRow(r: z.infer<typeof LeadRecord>, members: Member[]): LeadRow {
     createdAt: r.created_at,
     nextStep: r.next_step,
     nextStepAt: r.next_step_at,
+    qualified: r.qualified,
   };
 }
 
@@ -95,10 +97,7 @@ export async function loadLeads(organizationId: string, members: Member[]): Prom
   return rows.map((r) => toRow(r, members));
 }
 
-const DashboardRecord = LeadRecord.extend({
-  source: z.string().nullable(),
-  qualified: z.boolean().nullable(),
-});
+const DashboardRecord = LeadRecord.extend({ source: z.string().nullable() });
 
 /** Leads do painel: os mesmos da lista, com origem e qualificação. */
 export async function loadDashboardLeads(
@@ -109,7 +108,7 @@ export async function loadDashboardLeads(
     (sb) =>
       sb
         .from("leads")
-        .select(`${LEAD_COLUMNS}, source, qualified`)
+        .select(`${LEAD_COLUMNS}, source`)
         .eq("organization_id", organizationId)
         .order("created_at", { ascending: false })
         .limit(MAX_LEADS),

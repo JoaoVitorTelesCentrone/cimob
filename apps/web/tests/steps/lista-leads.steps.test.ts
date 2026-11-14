@@ -3,6 +3,7 @@ import { describeFeature, loadFeature } from "@amiceli/vitest-cucumber";
 import {
   applyList,
   isLate,
+  isNurture,
   parseListParams,
   type LeadRow,
   type ListParams,
@@ -54,6 +55,7 @@ describeFeature(feature, ({ Background, Scenario, ScenarioOutline }) => {
           ownerName: owner || null,
           assignedAt: assigned ? at(assigned) : null,
           firstResponseAt: row["respondido"] === "sim" ? now : null,
+          qualified: row["qualificado"] === "sim",
           createdAt: new Date(now.getTime() - i * 60_000),
         };
       });
@@ -114,6 +116,24 @@ describeFeature(feature, ({ Background, Scenario, ScenarioOutline }) => {
       expect(names()).toEqual([name]);
     });
   });
+
+  Scenario(
+    "Filtro de nutrição mostra quem o bot não qualificou e ainda está em Novo",
+    ({ When, Then, And }) => {
+      When("filtro os leads em nutrição", () => {
+        show(parseListParams({ nurture: "1" }));
+      });
+      Then("a lista mostra só {string}", (_ctx, name: string) => {
+        expect(names()).toEqual([name]);
+      });
+      And("{string} aparece como em nutrição", (_ctx, name: string) => {
+        expect(isNurture(byName(name))).toBe(true);
+      });
+      And("{string} não aparece como em nutrição", (_ctx, name: string) => {
+        expect(isNurture(byName(name))).toBe(false);
+      });
+    },
+  );
 
   Scenario("Filtro por corretor", ({ When, Then }) => {
     When("filtro pelo corretor {string}", (_ctx, owner: string) => {

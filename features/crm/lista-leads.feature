@@ -2,16 +2,18 @@
 @crm
 Funcionalidade: Lista de leads do CRM
   O gestor e o corretor encontram rápido quem precisa de atenção: atrasados primeiro.
+  Nutrição: o bot não qualificou o lead (prazo longo ou faixa abaixo do preço) e ninguém mexeu
+  nele ainda (continua em Novo); o gestor acompanha por um filtro próprio.
 
   Contexto:
     Dado agora são "2026-11-12 15:00"
     E os leads:
-      | nome         | telefone      | estágio   | corretor | atribuído às     | respondido |
-      | Ana Ribeiro  | 5511999990001 | new       | Marina   | 2026-11-12 12:00 | não        |
-      | Bruno Lima   | 5511999990002 | contacted | Marina   | 2026-11-12 14:30 | não        |
-      | Carla Souza  | 5521988880003 | qualified | Rafael   | 2026-11-12 09:00 | sim        |
-      | Diego Alves  | 5511977770004 | lost      | Rafael   | 2026-11-11 09:00 | não        |
-      | Érica Nunes  | 5511966660005 | new       |          |                  | não        |
+      | nome         | telefone      | estágio   | corretor | atribuído às     | respondido | qualificado |
+      | Ana Ribeiro  | 5511999990001 | new       | Marina   | 2026-11-12 12:00 | não        | sim         |
+      | Bruno Lima   | 5511999990002 | contacted | Marina   | 2026-11-12 14:30 | não        | sim         |
+      | Carla Souza  | 5521988880003 | qualified | Rafael   | 2026-11-12 09:00 | sim        | sim         |
+      | Diego Alves  | 5511977770004 | lost      | Rafael   | 2026-11-11 09:00 | não        | não         |
+      | Érica Nunes  | 5511966660005 | new       |          |                  | não        | não         |
 
   Cenário: Atrasados aparecem primeiro
     Quando abro a lista de leads
@@ -45,6 +47,12 @@ Funcionalidade: Lista de leads do CRM
     Quando filtro só os atrasados
     Então a lista mostra só "Ana Ribeiro"
 
+  Cenário: Filtro de nutrição mostra quem o bot não qualificou e ainda está em Novo
+    Quando filtro os leads em nutrição
+    Então a lista mostra só "Érica Nunes"
+    E "Érica Nunes" aparece como em nutrição
+    E "Ana Ribeiro" não aparece como em nutrição
+
   Cenário: Filtro por corretor
     Quando filtro pelo corretor "Rafael"
     Então a lista mostra "Carla Souza" e "Diego Alves"
@@ -54,7 +62,7 @@ Funcionalidade: Lista de leads do CRM
     Então a ordem é "Ana Ribeiro", "Bruno Lima", "Carla Souza", "Diego Alves", "Érica Nunes"
 
   Cenário: Parâmetros inválidos no endereço são ignorados
-    Quando abro a lista com o endereço "?stage=xyz&sort=hack&late=talvez"
+    Quando abro a lista com o endereço "?stage=xyz&sort=hack&late=talvez&nurture=sim"
     Então a lista mostra os 5 leads
 
   Cenário: Botão do WhatsApp abre a conversa com o lead

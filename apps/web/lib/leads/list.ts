@@ -14,6 +14,8 @@ export type LeadRow = {
   /** Próximo passo combinado (ficha do lead). */
   nextStep?: string | null;
   nextStepAt?: Date | null;
+  /** Resultado do bot: verdadeiro qualificou, falso foi para nutrição, nulo ainda não decidiu. */
+  qualified?: boolean | null;
 };
 
 export type ListParams = {
@@ -21,6 +23,7 @@ export type ListParams = {
   stage: Stage | null;
   owner: string | null;
   late: boolean;
+  nurture: boolean;
   sort: "recent" | "name";
 };
 
@@ -37,6 +40,11 @@ export function isLate(lead: LeadRow, now: Date, hours: BusinessHours | null = n
   return businessMsBetween(lead.assignedAt, now, hours) > LATE_AFTER_MS;
 }
 
+/** Nutrição: o bot não qualificou (prazo longo ou faixa abaixo) e o lead continua em Novo. */
+export function isNurture(lead: LeadRow): boolean {
+  return lead.qualified === false && lead.stage === "new";
+}
+
 type RawParams = Record<string, string | string[] | undefined>;
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
 
@@ -49,6 +57,7 @@ export function parseListParams(raw: RawParams): ListParams {
     stage: isStage(stage) ? stage : null,
     owner: owner || null,
     late: first(raw["late"]) === "1",
+    nurture: first(raw["nurture"]) === "1",
     sort: first(raw["sort"]) === "name" ? "name" : "recent",
   };
 }
@@ -81,6 +90,7 @@ export function applyList(
     .filter((l) => !p.stage || l.stage === p.stage)
     .filter((l) => !p.owner || l.ownerId === p.owner)
     .filter((l) => !p.late || isLate(l, now, hours))
+    .filter((l) => !p.nurture || isNurture(l))
     .map((l) => ({ lead: l, late: isLate(l, now, hours) }))
     .sort((a, b) => {
       if (a.late !== b.late) return a.late ? -1 : 1;

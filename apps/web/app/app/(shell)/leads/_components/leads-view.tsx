@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { RealtimeRefresh } from "@/components/realtime-refresh";
 import { formatDateTime, formatPhone } from "@/lib/format";
-import { applyList, isLate, parseListParams, type ListParams } from "@/lib/leads/list";
+import { applyList, isLate, isNurture, parseListParams, type ListParams } from "@/lib/leads/list";
 import {
   loadLead,
   loadLeads,
@@ -27,6 +27,7 @@ function toQuery(p: ListParams): string {
   if (p.stage) qs.set("stage", p.stage);
   if (p.owner) qs.set("owner", p.owner);
   if (p.late) qs.set("late", "1");
+  if (p.nurture) qs.set("nurture", "1");
   if (p.sort !== "recent") qs.set("sort", p.sort);
   const s = qs.toString();
   return s ? `?${s}` : "";
@@ -132,6 +133,10 @@ export async function LeadsView({
           <input type="checkbox" name="late" value="1" defaultChecked={params.late} />
           Só atrasados
         </label>
+        <label className="flex h-10 items-center gap-2 text-sm">
+          <input type="checkbox" name="nurture" value="1" defaultChecked={params.nurture} />
+          Só em nutrição
+        </label>
         <button className="h-10 rounded-pill bg-brand px-5 text-sm font-semibold text-on-brand">
           Filtrar
         </button>
@@ -174,6 +179,14 @@ export async function LeadsView({
                     )}
                     {isLate(lead, now, hours) && (
                       <span className={`${pill} ml-2 bg-danger-soft text-danger`}>Atrasado</span>
+                    )}
+                    {isNurture(lead) && (
+                      <span
+                        className={`${pill} ml-2 bg-surface text-ink-muted`}
+                        title="O bot não qualificou: prazo longo ou faixa abaixo do preço"
+                      >
+                        Nutrição
+                      </span>
                     )}
                   </td>
                   <td className="px-4 py-3 tabular-nums">{formatPhone(lead.phone)}</td>
